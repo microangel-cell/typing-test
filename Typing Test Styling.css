@@ -131,7 +131,10 @@ nav {
     font-size: 15px;
     font-weight: bold;
     gap: 24px;
+    left: 0;
     padding: 16px 19px 16px 22px;
+    position: relative;
+    top: 0;
     transition: background-color 160ms ease, transform 160ms ease;
 }
 
