@@ -129,6 +129,11 @@ nav {
     gap: 18px;
 }
 
+.hero-actions > a {
+    justify-content: space-between;
+    width: 260px;
+}
+
 .primary-action {
     align-items: center;
     background: #172b2b;
@@ -355,6 +360,7 @@ nav {
     background: #dce8df;
     border-radius: 4px;
     box-shadow: 18px 18px 0 #f0c8b6;
+    min-width: 0;
     padding: 28px;
     transform: rotate(2deg);
 }
@@ -365,7 +371,15 @@ nav {
     color: #657170;
     display: flex;
     font-size: 12px;
+    gap: 10px;
     justify-content: space-between;
+    min-width: 0;
+}
+
+.card-topline > span:not(.live-dot):not(.card-time),
+.preview-footer > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .live-dot {
@@ -378,8 +392,10 @@ nav {
 
 .card-time {
     color: #172b2b;
+    flex: 0 0 auto;
     font-weight: bold;
     margin-left: auto;
+    white-space: nowrap;
 }
 
 .preview-label {
@@ -394,6 +410,7 @@ nav {
     font-size: 27px;
     line-height: 1.28;
     margin: 0 0 32px;
+    overflow-wrap: anywhere;
 }
 
 .preview-progress {
@@ -412,6 +429,7 @@ nav {
 .preview-footer strong {
     color: #172b2b;
     font-size: 20px;
+    flex: 0 0 auto;
 }
 
 .home-details {
