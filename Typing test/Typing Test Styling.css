@@ -126,7 +126,7 @@ nav {
     align-items: flex-start;
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 18px;
 }
 
 .primary-action {
@@ -135,6 +135,7 @@ nav {
     border-radius: 4px;
     color: #fffaf1;
     display: inline-flex;
+    flex: 0 0 auto;
     font-size: 15px;
     font-weight: bold;
     gap: 24px;
@@ -161,6 +162,7 @@ nav {
     border-radius: 4px;
     color: var(--text);
     display: inline-flex;
+    flex: 0 0 auto;
     font-size: 15px;
     font-weight: bold;
     gap: 24px;
