@@ -1,1 +1,72 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="Typing Test Styling.css"></head><body class="practice-page" data-topic="wellbeing"><script src="Lesson Practice Page.js"></script><script src="Typing Test Function.js"></script><script src="Theme Function.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wellbeing | Keyflow</title>
+    <script>
+      if (localStorage.getItem("keyflow-theme") === "light")
+        document.documentElement.dataset.theme = "light";
+    </script>
+    <link rel="stylesheet" href="Typing Test Styling.css" />
+  </head>
+  <body
+    class="practice-page lesson-page"
+    data-text="Wellbeing includes caring for physical health, mental health, relationships, and daily habits."
+  >
+    <header class="site-header test-header">
+      <a
+        class="brand"
+        href="Typing Test Homepage.html"
+        aria-label="Keyflow home"
+        ><span class="brand-mark">K</span><span>Keyflow</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a class="nav-link home-link" href="Typing Test Homepage.html"
+          ><span class="home-icon" aria-hidden="true">&#8962;</span> Home</a
+        ><a class="nav-link" href="Typing Test Practicepage.html">Practice</a
+        ><a class="nav-link active" href="Learn While Typing.html">Learn</a
+        ><button
+          class="theme-toggle"
+          id="themeToggle"
+          type="button"
+          aria-label="Switch to light mode"
+          aria-pressed="false"
+        >
+          <span aria-hidden="true">&#9790;</span>
+        </button>
+      </nav>
+    </header>
+    <div class="practice-layout lesson-layout">
+      <main>
+        <section>
+          <h2>Wellbeing</h2>
+          <p>Type this Health lesson as accurately as possible.</p>
+          <p id="textDisplay" aria-label="Text to type"></p>
+          <input
+            type="text"
+            id="typingInput"
+            placeholder="Start typing here..."
+            autocomplete="off"
+          /><button class="restart-button" id="restartButton" type="button">
+            Restart test
+          </button>
+        </section>
+        <section>
+          <h2>Statistics</h2>
+          <p>Time: <span id="time">60</span>s</p>
+          <p>WPM: <span id="wpm">0</span></p>
+          <p>Accuracy: <span id="accuracy">100</span>%</p>
+        </section>
+      </main>
+    </div>
+    <footer>
+      <div class="footerbox"><p>Keyflow Typing Practice</p></div>
+    </footer>
+    <audio id="timeoutBuzzer" preload="auto">
+      <source src="Wrong_Buzzer_-_Sound_Effect(360p).mp3" type="audio/mpeg" />
+    </audio>
+    <script src="Typing Test Function.js"></script>
+    <script src="Theme Function.js"></script>
+  </body>
+</html>
