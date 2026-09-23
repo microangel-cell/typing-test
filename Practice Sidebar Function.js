@@ -1,5 +1,6 @@
 const practiceSidebar = document.getElementById("practiceSidebar");
 const sidebarToggle = document.getElementById("sidebarToggle");
+const practiceMain = document.querySelector(".practice-layout main");
 const savedSidebarState = localStorage.getItem("keyflow-sidebar");
 
 const additionalParagraphs = [
@@ -42,13 +43,24 @@ function updateSidebarToggle() {
 
 updateSidebarToggle();
 
-sidebarToggle.addEventListener("click", function () {
-  practiceSidebar.classList.toggle("collapsed");
-
+function saveSidebarState() {
   localStorage.setItem(
     "keyflow-sidebar",
     practiceSidebar.classList.contains("collapsed") ? "collapsed" : "expanded",
   );
+}
+
+sidebarToggle.addEventListener("click", function () {
+  practiceSidebar.classList.toggle("collapsed");
+  saveSidebarState();
 
   updateSidebarToggle();
+});
+
+practiceMain.addEventListener("click", function () {
+  if (!practiceSidebar.classList.contains("collapsed")) {
+    practiceSidebar.classList.add("collapsed");
+    saveSidebarState();
+    updateSidebarToggle();
+  }
 });

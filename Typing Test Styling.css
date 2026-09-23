@@ -1208,6 +1208,7 @@ body.light-mode #typingInput {
     margin: 0 auto;
     max-width: 1240px;
     padding: 0 24px;
+    position: relative;
     width: 100%;
 }/* Practice paragraph sidebar */
 
@@ -1215,14 +1216,15 @@ body.light-mode #typingInput {
     background: var(--panel);
     border: 1px solid var(--line);
     display: flex;
-    flex: 0 0 248px; /* Expanded sidebar width */
+    flex: none; /* The overlay does not take space from the main content */
     flex-direction: column;
-    height: 100vh; /* Expanded sidebar reaches the viewport bottom */
+    bottom: 0; /* Stretch the sidebar to the bottom of the practice page */
     overflow: hidden;
-    position: sticky;
+    position: absolute;
+    left: 0;
     top: 0;
     width: 248px;
-    z-index: 1;
+    z-index: 10;
     /* Sidebar open/close animation timing and easing */
     transition: background-color 750ms ease, border-color 750ms ease, flex-basis 1000ms cubic-bezier(0.22, 1, 0.36, 1), width 1000ms cubic-bezier(0.22, 1, 0.36, 1); /* One-second sidebar close motion */
 }
@@ -1344,10 +1346,11 @@ body.light-mode #typingInput {
     background: var(--panel);
     bottom: 0;
     flex-basis: 64px; /* Collapsed sidebar width */
-    position: sticky;
+    position: absolute;
+    left: 0;
     top: 0; /* Sidebar stops at the top of the viewport after the header scrolls away */
     width: 64px; /* Change this with flex-basis to resize the collapsed rail */
-    z-index: 1;
+    z-index: 10;
 }
 
 .practice-sidebar.collapsed .sidebar-heading {
@@ -1376,9 +1379,8 @@ body.light-mode #typingInput {
     margin: 40px 0;
     max-width: 920px;
     min-width: 0;
-    /* Keeps the practice content moving with the sidebar */
-    transition: margin-left 1000ms cubic-bezier(0.22, 1, 0.36, 1); /* Match the one-second sidebar close speed */
-} /* Practice paragraph-main joining sidebar transition  */
+    padding-left: 80px; /* Keep main content clear of the collapsed sidebar with extra space */
+} /* Practice content remains independent of the sidebar overlay */
 
 .practice-layout {
     margin-left: 0;
@@ -1423,16 +1425,25 @@ body.light-mode #typingInput {
 
 @media (max-width: 700px) {
     .practice-layout {
-        display: block;
-        padding: 0 18px;
+        display: flow-root; /* Prevent the main content margin from creating a gap above the sidebar */
+        padding: 0 18px 0 0; /* sidebar padding*/
     }
 
     .practice-sidebar,
     .practice-sidebar.collapsed {
-        flex-basis: auto;
-        height: auto;
-        position: static;
-        width: 100%;
+        /* Keep the sidebar as a left-to-right overlay instead of stacking it above the content */
+        flex: none;
+        margin: 0;
+        position: absolute;
+        left: 0;
+        top: 0; /* Positions the narrow sidebar directly below the header */
+        width: 248px;
+        z-index: 10;
+    }
+
+    .practice-sidebar.collapsed {
+        flex-basis: 64px;
+        width: 64px;
     }
 
     .practice-sidebar.collapsed .paragraph-nav {
