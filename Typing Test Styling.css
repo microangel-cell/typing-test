@@ -1423,6 +1423,71 @@ body.light-mode #typingInput {
 
 }
 
+.footerbox p {
+    margin: 0 0 14px;
+}
+
+.footerbox nav,
+.site-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+}
+
+.footerbox a,
+.site-footer a {
+    color: var(--muted);
+    font-size: 14px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.footerbox a:hover,
+.site-footer a:hover {
+    color: var(--accent);
+}
+
+.info-page {
+    margin: 0 auto;
+    max-width: 760px;
+    min-height: calc(100vh - 180px);
+    padding: 80px 24px;
+}
+
+.info-page h1 {
+    color: var(--text);
+    font-family: Georgia, serif;
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: normal;
+    line-height: 1;
+    margin: 0 0 28px;
+}
+
+.info-page p:not(.eyebrow) {
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.7;
+    margin: 0 0 18px;
+}
+
+.info-page a {
+    color: var(--accent);
+}
+
+.site-footer {
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 28px;
+    justify-content: space-between;
+    padding: 24px;
+}
+
+.site-footer p {
+    margin: 0;
+}
+
 @media (max-width: 700px) {
     .practice-layout {
         display: flow-root; /* Prevent the main content margin from creating a gap above the sidebar */
