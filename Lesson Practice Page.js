@@ -40,7 +40,7 @@ if (!lesson) {
             <a class="brand" href="Typing Test Homepage.html" aria-label="Keyflow home"><span class="brand-mark">K</span><span>Keyflow</span></a>
             <nav aria-label="Main navigation">
                 <a class="nav-link home-link" href="Typing Test Homepage.html"><span class="home-icon" aria-hidden="true">⌂</span> Home</a>
-                <a class="nav-link" href="Typing Test Practicepage.html">Practice</a>
+                <a class="nav-link" href="Typing Test Practicepage1.html">Practice</a>
                 <a class="nav-link active" href="Learn While Typing.html">Learn</a>
                 <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span aria-hidden="true">☾</span></button>
             </nav>
