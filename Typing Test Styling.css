@@ -572,9 +572,11 @@ section p:nth-of-type(2) {
 /* Footer text */
 
 footer {
+    background-color: var(--panel); /* Keeps every page footer on a solid themed surface. */
     text-align: center;
     padding: 0;
     color: #666;
+    width: 100%; /* Stretches footer backgrounds across the viewport. */
 }
 
 /* Original mobile layout rules */
@@ -1716,8 +1718,11 @@ main.freestyle-main {
     flex-wrap: wrap;
     gap: 14px 28px;
     justify-content: center;
+    margin: 0; /* Removes the centered width margins from shared footers. */
+    max-width: none; /* Lets shared footers use the full viewport width. */
     padding: 24px;
     text-align: center;
+    width: 100%;
 }
 
 .practice-intro-page .site-footer {
