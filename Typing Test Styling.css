@@ -1447,6 +1447,162 @@ body.light-mode #typingInput {
     margin: 0;
 }
 
+main.freestyle-main {
+    margin: 36px auto 64px; /* Centers the free style test between the shared header and footer. */
+    max-width: 1180px; /* Gives the long word prompt room to wrap comfortably. */
+    padding: 0 28px;
+    width: 100%;
+}
+
+.freestyle-main > section:first-child {
+    margin-bottom: 22px;
+}
+
+.freestyle-main h1 {
+    color: var(--text);
+    font-family: Georgia, serif;
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: normal;
+    margin: 0 0 14px;
+}
+
+.free-style-page #freeStyleInstructions {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    font-family: var(--font-interface);
+    line-height: 1.6;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.free-style-page #textDisplay {
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--warning);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-interface);
+    font-size: clamp(20px, 2.2vw, 28px); /* Enlarges the free style words for a clearer reading target. */
+    height: 200px; /* Keeps the prompt viewport to three visible word rows. */
+    justify-content: center;
+    line-height: 1.7;
+    margin: 0 0 22px;
+    overflow: hidden;
+    padding: 20px;
+}
+
+.free-style-line {
+    min-height: 1.7em;
+    transition: filter 180ms ease, opacity 180ms ease;
+    white-space: pre;
+}
+
+.free-style-line.is-blurred {
+    filter: blur(2px); /* Softens the adjacent rows while keeping them visible. */
+    opacity: 0.42;
+}
+
+.free-style-line.is-hidden {
+    display: none;
+}
+
+.free-style-label {
+    color: var(--text);
+    display: block;
+    font-family: var(--font-interface);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.free-style-page #typingInput {
+    display: block;
+}
+
+.free-style-stats {
+    align-items: stretch;
+    display: grid;
+    gap: 16px 24px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.free-style-stats h2 {
+    grid-column: 1 / -1;
+}
+
+.free-style-stats p {
+    border: 1px solid var(--line);
+    margin: 0;
+    min-width: 0;
+    padding: 16px;
+    text-align: center;
+}
+
+.free-style-stats p span {
+    color: var(--accent);
+    display: block;
+    font-size: 22px;
+    margin-top: 8px;
+}
+
+.free-style-stats p .timer-label {
+    color: var(--muted);
+    display: block;
+    font-size: inherit;
+    margin: 0;
+}
+
+.free-style-stats p .timer-value {
+    align-items: baseline;
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.free-style-stats p .timer-value #time,
+.free-style-stats p .timer-value .timer-unit {
+    color: var(--accent);
+    display: inline;
+    margin: 0;
+}
+
+.free-style-stats p .timer-value .timer-unit {
+    font-size: 16px;
+}
+
+.free-style-stats p.timer-expired {
+    background: rgba(248, 81, 73, 0.12);
+    border-color: #f85149;
+    color: #f85149;
+}
+
+.free-style-stats p.timer-expired span {
+    color: #f85149;
+}
+
+.free-style-stats p.timer-expired #time {
+    color: #f85149; /* Keeps the countdown digits red after the timer expires. */
+}
+
+.free-style-stats p.timer-expired .timer-label,
+.free-style-stats p.timer-expired .timer-unit {
+    color: #f85149; /* Turns the Time label and seconds unit red with the countdown. */
+}
+
+@media (max-width: 700px) {
+    .freestyle-main {
+        margin-top: 24px;
+        padding: 0 18px;
+    }
+
+    .free-style-stats {
+        gap: 10px;
+        grid-template-columns: 1fr;
+    }
+}
+
 .welcome-mark {
     color: var(--accent);
     font-size: 24px;

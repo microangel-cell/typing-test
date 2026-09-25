@@ -5,10 +5,14 @@ const timeDisplay = document.getElementById("time");
 const wpmDisplay = document.getElementById("wpm");
 const accuracyDisplay = document.getElementById("accuracy");
 const textDisplay = document.getElementById("textDisplay");
+const timerStatus = document.body.classList.contains("free-style-page")
+    ? timeDisplay.closest("p")
+    : timeDisplay.parentElement;
 
-const textToType = document.body.dataset.text;
+let textToType = document.body.dataset.text;
+const testDuration = Number(document.body.dataset.duration) || 60;
 
-let timeLeft = 60;
+let timeLeft = testDuration;
 let timer = null;
 let isRunning = false;
 let startTime = null;
@@ -19,6 +23,36 @@ timeoutBuzzer.preload = "auto";
 
 function renderText() {
     textDisplay.replaceChildren();
+
+    if (document.body.classList.contains("free-style-page")) {
+        const words = textToType.split(" ");
+        const wordsPerLine = window.matchMedia("(max-width: 700px)").matches ? 4 : 8;
+        let characterIndex = 0;
+
+        for (let wordIndex = 0; wordIndex < words.length; wordIndex += wordsPerLine) {
+            let lineText = words.slice(wordIndex, wordIndex + wordsPerLine).join(" ");
+            if (wordIndex + wordsPerLine < words.length) {
+                lineText += " ";
+            }
+
+            const line = document.createElement("div");
+            line.className = "free-style-line";
+            line.dataset.start = characterIndex;
+            line.dataset.end = characterIndex + lineText.length;
+
+            for (const character of lineText) {
+                const characterSpan = document.createElement("span");
+                characterSpan.textContent = character;
+                line.appendChild(characterSpan);
+            }
+
+            textDisplay.appendChild(line);
+            characterIndex += lineText.length;
+        }
+
+        updateTextHighlight("");
+        return;
+    }
 
     for (const character of textToType) {
         const characterSpan = document.createElement("span");
@@ -46,6 +80,24 @@ function updateTextHighlight(typedText) {
         }
     });
 
+    if (document.body.classList.contains("free-style-page")) {
+        const lines = Array.from(textDisplay.querySelectorAll(".free-style-line"));
+        const activeLineIndex = lines.findIndex((line) => {
+            const lineStart = Number(line.dataset.start);
+            const lineEnd = Number(line.dataset.end);
+            return typedText.length >= lineStart && typedText.length < lineEnd;
+        });
+        const visibleLineIndex = activeLineIndex < 0 ? lines.length - 1 : activeLineIndex;
+        const firstVisibleLine = Math.max(0, Math.min(visibleLineIndex - 1, lines.length - 3));
+
+        lines.forEach((line, index) => {
+            const isVisible = index >= firstVisibleLine && index < firstVisibleLine + 3;
+            line.classList.toggle("is-active", index === visibleLineIndex);
+            line.classList.toggle("is-blurred", isVisible && index !== visibleLineIndex);
+            line.classList.toggle("is-hidden", !isVisible);
+        });
+    }
+
     typingInput.classList.toggle(
         "input-warning",
         typedText.length > textToType.length
@@ -64,12 +116,12 @@ restartButton.addEventListener("click", restartTest);
 function startTest() {
 
     // Reset values
-    timeLeft = 60;
+    timeLeft = testDuration;
     timeDisplay.textContent = timeLeft;
     wpmDisplay.textContent = 0;
     accuracyDisplay.textContent = 100;
     backspacePresses = 0;
-    timeDisplay.parentElement.classList.remove("timer-expired");
+    timerStatus.classList.remove("timer-expired");
 
     // Start the test
     isRunning = true;
@@ -97,7 +149,7 @@ function updateTimer() {
     timeDisplay.textContent = timeLeft;
 
     if (timeLeft <= 0) {
-        timeDisplay.parentElement.classList.add("timer-expired");
+        timerStatus.classList.add("timer-expired");
         timeoutBuzzer.currentTime = 0;
         timeoutBuzzer.play().catch(() => {});
         finishTest();
@@ -200,19 +252,26 @@ function finishTest() {
 
 function restartTest() {
 
+    if (
+        document.body.classList.contains("free-style-page")
+        && typeof window.generateFreeStyleText === "function"
+    ) {
+        textToType = window.generateFreeStyleText();
+    }
+
     clearInterval(timer);
 
-    timeLeft = 60;
+    timeLeft = testDuration;
     isRunning = false;
     startTime = null;
     backspacePresses = 0;
 
     typingInput.value = "";
     typingInput.disabled = false;
-    updateTextHighlight("");
+    renderText();
     timeDisplay.textContent = timeLeft;
     wpmDisplay.textContent = 0;
     accuracyDisplay.textContent = 100;
-    timeDisplay.parentElement.classList.remove("timer-expired");
+    timerStatus.classList.remove("timer-expired");
     typingInput.focus();
 }

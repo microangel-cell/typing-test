@@ -1,0 +1,23 @@
+const freeStyleWords = `
+about above across action active adapt admire advice after again agent ahead allow almost along also always amber among anchor ancient angle answer anyone appear apple arch area argue arise around artist aside ask aspect autumn awake balance bamboo basic beach become before begin behave belief below beside better beyond bicycle bird birth bloom blue border brave breeze bright bring build calm camera candle careful carry cause celebrate center chance change chapter charm check choice circle city clean clear clever climb clock cloud coast color comfort common connect coral corner count courage create curious daily dance decide deep delight demand design detail discover distance divide dream drift drink early earth easy echo edit effort eight elder else empty energy enjoy enough enter equal evening every exact explore extra fabric fair faith fall family famous farm fast favorite feature field figure fill film find finish first fish five flower focus follow forest forget forward frame fresh friend from future gather gentle gift glass global glow golden grace grain grand grow guess habit half hand happy harbor hard harmony have heart heavy hello helpful hidden high history home honest hope horizon house human humble idea imagine improve include index inside inspire instant island item jacket journey joy judge jump keep kind kitchen know label lake language large last later learn leave letter light listen little live local logic long lucky magic main make manage many market matter maybe measure memory method minute mirror model moment money morning motion mountain move music narrow nature near neat necessary neighbor nerve new next night noble noise north notice number object ocean offer often once only open option orange order origin other outside page paint pair paper parent park part people perfect person phone phrase picture piece planet plan planet plant play please plenty pocket poem point popular possible practice present press pretty price prime print problem produce program progress prompt proof pulse purple quick quiet question quick race reach read ready real reason rebuild record reduce reflect relax remember repeat reply respond result return rhythm river road room round safe sail same sample satisfy scene school science screen search second secret see select send series shape share shine short shoulder show simple sing skill sky slow small smile smooth social soft solar solid solution some someone sound source space spark speak special speed spend spirit split sport spring stable stand star start steady step stone story stream strong student study style subject success suggest summer sun support sure surface surprise system table take talent task teach team tell text than thank theme there think thrive time together tomorrow topic travel treasure tree true trust type unique unit universe update useful value various vivid voice wait walk warm water way weather week welcome well west whole wide wild win window wisdom wonder word work world write yellow young zebra zero a I is on am an and any are arm art ask ate bad bag bar bat bed bee big bit box boy bus but can cap car cat cow cry cup cut day did dog dry ear eat egg end era eye fan far fat few fit fix fly for fun gap gas get god gum guy had ham has hat her hid him hip his hit hot how ice ill ink its jet job joy key kid kit lab lap law lay led leg let lid lie lip lit log lot low mad man map may met mix mom mud mug net new nod nor not now oak odd off old one opt our out own pad pan pat pay pen pet pie pig pin pit pot put ran rat raw ray red rid rig rim rip rod row rub run sad sag sat saw say sea set sew she shy sir sit six ski sky sob son spy sun tap tea ten the tie tin tip toe too top toy try two use van vet via war was wax way web wet who why win wit yes yet you zip zoo government information important international community education experience development business different beautiful communication environment technology responsibility opportunity understand available another between knowledge necessary organization`.trim().split(/\s+/);
+
+function generateFreeStyleText() {
+    const selectedWords = [];
+
+    for (let index = 0; index < 300; index++) {
+        let nextWord = freeStyleWords[Math.floor(Math.random() * freeStyleWords.length)];
+
+        while (nextWord === selectedWords[index - 1]) {
+            nextWord = freeStyleWords[Math.floor(Math.random() * freeStyleWords.length)];
+        }
+
+        selectedWords.push(nextWord);
+    }
+
+    const newText = selectedWords.join(" ");
+    document.body.dataset.text = newText;
+    return newText;
+}
+
+window.generateFreeStyleText = generateFreeStyleText;
+document.body.dataset.text = generateFreeStyleText();
