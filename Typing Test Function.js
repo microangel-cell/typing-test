@@ -26,12 +26,34 @@ function renderText() {
 
     if (document.body.classList.contains("free-style-page")) {
         const words = textToType.split(" ");
-        const wordsPerLine = window.matchMedia("(max-width: 700px)").matches ? 4 : 8;
+        const promptStyle = window.getComputedStyle(textDisplay);
+        const availableWidth = textDisplay.clientWidth
+            - parseFloat(promptStyle.paddingLeft)
+            - parseFloat(promptStyle.paddingRight);
+        const measureCanvas = document.createElement("canvas");
+        const measureContext = measureCanvas.getContext("2d");
+        measureContext.font = promptStyle.font;
+        const lineTexts = [];
+        let wordsOnLine = [];
         let characterIndex = 0;
 
-        for (let wordIndex = 0; wordIndex < words.length; wordIndex += wordsPerLine) {
-            let lineText = words.slice(wordIndex, wordIndex + wordsPerLine).join(" ");
-            if (wordIndex + wordsPerLine < words.length) {
+        words.forEach((word) => {
+            const candidateLine = [...wordsOnLine, word].join(" ");
+
+            if (wordsOnLine.length > 0 && measureContext.measureText(candidateLine).width > availableWidth) {
+                lineTexts.push(`${wordsOnLine.join(" ")} `);
+                wordsOnLine = [word];
+            } else {
+                wordsOnLine.push(word);
+            }
+        });
+
+        if (wordsOnLine.length > 0) {
+            lineTexts.push(wordsOnLine.join(" "));
+        }
+
+        lineTexts.forEach((lineText, lineIndex) => {
+            if (lineIndex < lineTexts.length - 1 && !lineText.endsWith(" ")) {
                 lineText += " ";
             }
 
@@ -48,7 +70,7 @@ function renderText() {
 
             textDisplay.appendChild(line);
             characterIndex += lineText.length;
-        }
+        });
 
         updateTextHighlight("");
         return;
@@ -105,6 +127,14 @@ function updateTextHighlight(typedText) {
 }
 
 renderText();
+
+if (document.body.classList.contains("free-style-page")) {
+    window.addEventListener("resize", function () {
+        const typedText = typingInput.value;
+        renderText();
+        updateTextHighlight(typedText);
+    });
+}
 
 restartButton.addEventListener("click", restartTest);
 

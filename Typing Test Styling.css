@@ -1452,7 +1452,7 @@ body.light-mode #typingInput {
 main.freestyle-main {
     margin: 36px auto 64px; /* Centers the free style test between the shared header and footer. */
     max-width: 1180px; /* Gives the long word prompt room to wrap comfortably. */
-    padding: 0 28px;
+    padding: 24px clamp(24px, 4vw, 48px) 40px; /* Adds space around the free style test content. */
     width: 100%;
 }
 
@@ -1596,7 +1596,7 @@ main.freestyle-main {
 @media (max-width: 700px) {
     .freestyle-main {
         margin-top: 24px;
-        padding: 0 18px;
+        padding: 20px 18px 32px;
     }
 
     .free-style-stats {
