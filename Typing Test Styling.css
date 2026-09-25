@@ -1390,6 +1390,82 @@ body.light-mode #typingInput {
     padding-right: 24px;
 }
 
+/* Practice welcome page */
+.practice-intro-layout {
+    min-height: calc(100vh - 170px);
+}
+
+.practice-intro-content {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    max-width: none;
+    min-height: 620px;
+    padding: 70px clamp(24px, 4vw, 72px) 70px 330px; /* Frees more desktop width for the intro section. */
+    width: 100%;
+}
+
+.practice-welcome {
+    max-width: 1120px; /* Expands the intro section across wider desktop layouts. */
+    transform: translateY(-86px); /* Lifts the welcome section slightly on the page. */
+    width: 100%;
+}
+
+.practice-welcome h1 {
+    color: var(--text);
+    font-family: Georgia, serif;
+    font-size: clamp(42px, 6vw, 76px);
+    font-weight: normal;
+    letter-spacing: -0.045em;
+    line-height: 1.04;
+    margin: 0 0 24px;
+    max-width: 820px; /* Lets the wider welcome heading use the added space. */
+}
+
+.practice-welcome-lead {
+    color: var(--muted);
+    font-size: clamp(18px, 2vw, 22px);
+    line-height: 1.65;
+    margin: 0;
+    max-width: 780px; /* Widens the introductory copy to match the section. */
+}
+
+.practice-welcome-note {
+    align-items: flex-start;
+    border-left: 2px solid var(--accent);
+    display: flex;
+    gap: 18px;
+    margin-top: 42px;
+    max-width: 880px; /* Caps the intro card width; increase this to let it spread farther on desktop. */
+    padding: 18px 22px;
+}
+
+.practice-welcome-note p {
+    color: var(--muted);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.welcome-mark {
+    color: var(--accent);
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+@media (max-width: 700px) {
+    .practice-intro-content {
+        min-height: 560px;
+        padding: 72px 24px 64px 88px;
+    }
+
+    .practice-welcome-note {
+        gap: 12px;
+        margin-top: 28px;
+        padding: 14px 16px;
+    }
+}
+
 .lesson-layout {
     padding-left: 24px;
 }
@@ -1486,6 +1562,16 @@ body.light-mode #typingInput {
     justify-content: center;
     padding: 24px;
     text-align: center;
+}
+
+.practice-intro-page .site-footer {
+    background: var(--panel); /* Matches the solid footer surface on the other practice pages. */
+    border: 1px solid var(--line); /* Gives the footer a visible edge around the solid panel. */
+    margin: 0; /* Aligns the footer with the full-width practice page footer. */
+    max-width: none; /* Removes the shared site-footer width cap. */
+    padding: 30px; /* Matches the padding used by the practice page footer panel. */
+    transition: background-color 750ms ease, border-color 750ms ease;
+    width: 100%; /* Lets the footer span the full page width. */
 }
 
 .site-footer p {
