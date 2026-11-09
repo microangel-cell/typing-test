@@ -2109,21 +2109,67 @@ main.freestyle-main {
 
 .sparkline {
     display: block;
-    height: 48px;
+    height: 56px;
     margin-top: 16px;
-    max-width: 100%;
-    width: 240px;
+    overflow: visible;
+    width: 100%;
 }
 
 .sparkline polyline {
     fill: none;
     stroke: var(--accent);
+    stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 2;
+    vector-effect: non-scaling-stroke; /* keeps the line thin when the chart stretches */
 }
 
-.sparkline circle {
-    fill: var(--accent);
+.sparkline .sparkline-dot {
+    stroke-width: 8;
+}
+
+/* Download buttons: same 4-column grid and gap as the stat boxes above */
+.my-stats-actions {
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 20px;
+    padding-top: 20px;
+}
+
+.my-stats-actions .kf-button {
+    grid-column: span 2;
+    text-align: center;
+    width: 100%;
+}
+
+.my-stats-footer {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    justify-content: space-between;
+    margin-top: 14px;
+}
+
+.my-stats-footer > .kf-help {
+    flex: 1 1 320px;
+    margin: 0;
+}
+
+.sign-out-area {
+    flex: none;
+}
+
+.sign-out-area.is-confirming {
+    border-top: 1px dashed var(--line);
+    flex-basis: 100%;
+    padding-top: 12px;
+}
+
+.sign-out-area.is-confirming .kf-help {
+    margin-top: 0;
 }
 
 .file-button {
@@ -2209,6 +2255,15 @@ main.freestyle-main {
 @media (max-width: 700px) {
     .my-stats-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Phones: buttons stack, each the full card width */
+    .my-stats-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .my-stats-actions .kf-button {
+        grid-column: auto;
     }
 
     .leaderboard-main {

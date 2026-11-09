@@ -76,10 +76,12 @@
         // Oldest on the left, newest on the right.
         const values = history.map((entry) => entry.wpm).reverse();
         const svgNS = "http://www.w3.org/2000/svg";
-        const width = 240;
+        // Stretches to the card's full width; strokes keep their thickness.
+        const width = 100;
         const height = 48;
         const svg = document.createElementNS(svgNS, "svg");
         svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.setAttribute("preserveAspectRatio", "none");
         svg.setAttribute("class", "sparkline");
         svg.setAttribute("role", "img");
         svg.setAttribute("aria-label", `WPM over your last ${values.length} tests, oldest first: ${values.join(", ")}`);
@@ -92,7 +94,7 @@
         const min = Math.min(...values);
         const range = max - min || 1;
         const points = values.map((value, index) => {
-            const x = (index / (values.length - 1)) * (width - 8) + 4;
+            const x = (index / (values.length - 1)) * (width - 2) + 1;
             const y = height - 4 - ((value - min) / range) * (height - 8);
             return [x, y];
         });
@@ -101,11 +103,12 @@
         line.setAttribute("points", points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" "));
         svg.appendChild(line);
 
+        // Dot on the latest result: a zero-length line with round caps stays
+        // circular even though the chart is stretched (a <circle> would not).
         const [lastX, lastY] = points[points.length - 1];
-        const dot = document.createElementNS(svgNS, "circle");
-        dot.setAttribute("cx", lastX.toFixed(1));
-        dot.setAttribute("cy", lastY.toFixed(1));
-        dot.setAttribute("r", "3.5");
+        const dot = document.createElementNS(svgNS, "polyline");
+        dot.setAttribute("class", "sparkline-dot");
+        dot.setAttribute("points", `${lastX.toFixed(1)},${lastY.toFixed(1)} ${lastX.toFixed(1)},${lastY.toFixed(1)}`);
         svg.appendChild(dot);
 
         return svg;
@@ -119,9 +122,10 @@
         const summary = Player.summarise(player.history);
         const freeStylePR = player.prs["free-style"];
         const fullPlayer = { ...saved, ...player, key: saved.key };
-        const signOutArea = el("div", { class: "kf-row" });
+        const signOutArea = el("div", { class: "sign-out-area" });
 
         function showSignOutButton() {
+            signOutArea.classList.remove("is-confirming");
             signOutArea.replaceChildren(el("button", {
                 type: "button",
                 class: "kf-link-button",
@@ -130,14 +134,17 @@
         }
 
         function showSignOutConfirm() {
+            signOutArea.classList.add("is-confirming");
             signOutArea.replaceChildren(
                 el("p", { class: "kf-help" }, "Download your key first, or you won't be able to get this IGN back. Remove it from this browser?"),
-                el("button", { type: "button", class: "kf-button danger", onclick: () => {
-                    Player.forgetPlayer();
-                    renderRestore();
-                    renderTable();
-                } }, "Remove"),
-                el("button", { type: "button", class: "kf-button secondary", onclick: showSignOutButton }, "Cancel"),
+                el("div", { class: "kf-row" },
+                    el("button", { type: "button", class: "kf-button danger", onclick: () => {
+                        Player.forgetPlayer();
+                        renderRestore();
+                        renderTable();
+                    } }, "Remove"),
+                    el("button", { type: "button", class: "kf-button secondary", onclick: showSignOutButton }, "Cancel"),
+                ),
             );
         }
 
@@ -162,15 +169,18 @@
             !saved.keySaved
                 ? el("p", { class: "kf-error" }, "You haven't confirmed saving your key yet. Download it now so you don't lose this IGN.")
                 : null,
-            el("div", { class: "kf-row" },
+            // Same 4-column grid as the stat boxes, so the buttons line up with them.
+            el("div", { class: "my-stats-actions" },
                 el("button", { type: "button", class: "kf-button", onclick: () => Player.downloadStatsFile(fullPlayer) }, "Download my stats"),
                 el("button", { type: "button", class: "kf-button secondary", onclick: () => {
                     Player.downloadKeyFile(fullPlayer);
                     Player.updatePlayer({ keySaved: true });
                 } }, "Download key again"),
             ),
-            el("p", { class: "kf-help" }, "Your stats file is safe to share. Your key file is private; anyone with it can post scores as you."),
-            signOutArea,
+            el("div", { class: "my-stats-footer" },
+                el("p", { class: "kf-help" }, "Your stats file is safe to share. Your key file is private; anyone with it can post scores as you."),
+                signOutArea,
+            ),
         );
     }
 
