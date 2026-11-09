@@ -13,13 +13,15 @@
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Typing practice paragraph 1, Classic Warm-up: a 60-second timed typing test that measures your words per minute and accuracy.">
 
-    <title>Typing Practice</title>
+    <title>Classic Warm-up | Keyflow</title>
     <script>if (localStorage.getItem("keyflow-theme") === "light") document.documentElement.dataset.theme = "light";</script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="Typing Test Styling.css">
 </head>
 
-<body class="practice-page" data-text="A quiet desk and a clear plan make practice easier. Keep your hands relaxed and your eyes a few words ahead. Correct errors calmly without losing your rhythm today always.">
+<body data-test-id="practice-1" class="practice-page" data-text="A quiet desk and a clear plan make practice easier. Keep your hands relaxed and your eyes a few words ahead. Correct errors calmly without losing your rhythm today always.">
 
     <header class="site-header test-header">
         <a class="brand" href="index.html" aria-label="Keyflow home">
@@ -33,6 +35,7 @@
             </a> <!--&#8962 code for home icon-->
             <a class="nav-link active" href="Practice.html">Practice</a>
             <a class="nav-link" href="Learn While Typing.html">Learn</a>
+            <a class="nav-link" href="leaderboard.html">Leaderboard</a>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false">
                 <span aria-hidden="true">&#9790;</span>
             </button>
@@ -92,7 +95,7 @@
 
             <input
                 type="text"
-                id="typingInput"
+                id="typingInput" aria-label="Type the text shown above" spellcheck="false" autocapitalize="off" autocorrect="off"
                 placeholder="Start typing here..."
                 autocomplete="off"
             >
@@ -138,6 +141,8 @@
         <source src="Wrong_Buzzer_-_Sound_Effect(360p).mp3" type="audio/mpeg">
     </audio>
 <script src="Typing Test Function.js"></script>
+<script src="Player Function.js"></script>
+<script src="PR Function.js"></script>
 <script src="Theme Function.js"></script>
 <script src="Practice Sidebar Function.js"></script>
 </body>

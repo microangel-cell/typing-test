@@ -1,0 +1,11 @@
+{
+  "name": "keyflow-typing-test",
+  "private": true,
+  "description": "Keyflow typing practice website with a Netlify Functions scores API.",
+  "dependencies": {
+    "@netlify/blobs": "11.1.6"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

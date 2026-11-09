@@ -12,14 +12,17 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2704039128240077" crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Typing practice paragraph 8, Morning Routine: a 60-second timed typing test that measures your words per minute and accuracy.">
     <title>Morning Routine | Keyflow</title>
     <script>
       if (localStorage.getItem("keyflow-theme") === "light")
         document.documentElement.dataset.theme = "light";
     </script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="Typing Test Styling.css" />
   </head>
   <body
+    data-test-id="practice-8"
     class="practice-page"
     data-text="A simple morning routine creates space for a thoughtful start. Open the window, prepare what you need, and choose one important task before the day becomes busy. Small actions make room for attention and patience. A steady beginning can shape the hours that follow with purpose."
   >
@@ -36,7 +39,7 @@
         ><a class="nav-link active" href="Practice.html"
           >Practice</a
         ><a class="nav-link" href="Learn While Typing.html">Learn</a
-        ><button
+        ><a class="nav-link" href="leaderboard.html">Leaderboard</a><button
           class="theme-toggle"
           id="themeToggle"
           type="button"
@@ -122,7 +125,7 @@
           <p id="textDisplay" aria-label="Text to type"></p>
           <input
             type="text"
-            id="typingInput"
+            id="typingInput" aria-label="Type the text shown above" spellcheck="false" autocapitalize="off" autocorrect="off"
             placeholder="Start typing here..."
             autocomplete="off"
           /><button class="restart-button" id="restartButton" type="button">
@@ -144,6 +147,8 @@
       <div class="footerbox"><p>&copy; 2026 Keyflow. All rights reserved.</p><nav aria-label="Footer navigation"><a href="About.html">About</a><a href="Contact.html">Contact</a><a href="Privacy Policy.html">Privacy Policy</a><a href="Terms of Use.html">Terms of Use</a></nav></div>
     </footer>
     <script src="Typing Test Function.js"></script>
+    <script src="Player Function.js"></script>
+    <script src="PR Function.js"></script>
     <script src="Theme Function.js"></script>
     <script src="Practice Sidebar Function.js"></script>
   </body>

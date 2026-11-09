@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2T159H2GX2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-2T159H2GX2');
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2704039128240077" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Keyflow Free Style leaderboard: the fastest 60-second typing results with at least 85% accuracy.">
+    <title>Leaderboard | Keyflow</title>
+    <script>if (localStorage.getItem("keyflow-theme") === "light") document.documentElement.dataset.theme = "light";</script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="Typing Test Styling.css">
+</head>
+<body class="leaderboard-page">
+    <header class="site-header">
+        <a class="brand" href="index.html" aria-label="Keyflow home">
+            <span class="brand-mark">K</span>
+            <span>Keyflow</span>
+        </a>
+        <nav aria-label="Main navigation">
+            <a class="nav-link home-link" href="index.html"><span class="home-icon" aria-hidden="true">&#8962;</span> Home</a>
+            <a class="nav-link" href="Practice.html">Practice</a>
+            <a class="nav-link" href="Learn While Typing.html">Learn</a>
+            <a class="nav-link active" href="leaderboard.html" aria-current="page">Leaderboard</a>
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false">
+                <span aria-hidden="true">&#9790;</span>
+            </button>
+        </nav>
+    </header>
+
+    <main class="leaderboard-main">
+        <p class="eyebrow">Free Style · 60 seconds</p>
+        <h1>Leaderboard</h1>
+        <p class="leaderboard-intro">Each player's best Free Style result. Only results with at least 85% accuracy count. <a href="Free Style.html">Take the test →</a></p>
+
+        <div class="my-stats" id="my-stats" aria-live="polite">
+            <p class="kf-help">Loading your stats…</p>
+        </div>
+
+        <div class="leaderboard-table-wrap">
+            <table class="leaderboard-table">
+                <caption class="sr-only">Top 50 Free Style results</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Player</th>
+                        <th scope="col">WPM</th>
+                        <th scope="col">Accuracy</th>
+                        <th scope="col">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardRows">
+                    <tr><td colspan="5" class="leaderboard-status">Loading the leaderboard…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Keyflow. All rights reserved.</p>
+        <nav aria-label="Footer navigation">
+            <a href="About.html">About</a>
+            <a href="Contact.html">Contact</a>
+            <a href="Privacy Policy.html">Privacy Policy</a>
+            <a href="Terms of Use.html">Terms of Use</a>
+        </nav>
+    </footer>
+    <script src="Player Function.js"></script>
+    <script src="Leaderboard Function.js"></script>
+    <script src="Theme Function.js"></script>
+</body>
+</html>

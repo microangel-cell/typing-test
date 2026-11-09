@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2T159H2GX2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-2T159H2GX2');
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2704039128240077" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Take a free 60-second typing test with 300 random words and see your words per minute and accuracy instantly.">
     <title>Free Style | Keyflow</title>
     <script>if (localStorage.getItem("keyflow-theme") === "light") document.documentElement.dataset.theme = "light";</script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="Typing Test Styling.css">
 </head>
-<body class="practice-page free-style-page" data-duration="60">
+<body data-test-id="free-style" class="practice-page free-style-page" data-duration="60">
     <header class="site-header test-header">
         <a class="brand" href="index.html" aria-label="Keyflow home">
             <span class="brand-mark">K</span>
@@ -17,6 +28,7 @@
             <a class="nav-link home-link" href="index.html"><span class="home-icon" aria-hidden="true">&#8962;</span> Home</a>
             <a class="nav-link" href="Practice.html">Practice</a>
             <a class="nav-link" href="Learn While Typing.html">Learn</a>
+            <a class="nav-link" href="leaderboard.html">Leaderboard</a>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span aria-hidden="true">&#9790;</span></button>
         </nav>
     </header>
@@ -28,7 +40,7 @@
             <p id="freeStyleInstructions">Type all 300 randomly selected words. A new word set is generated whenever you open Free Style from the homepage.</p>
             <p id="textDisplay" aria-label="300 random words to type"></p>
             <label class="free-style-label" for="typingInput">Your typing</label>
-            <input type="text" id="typingInput" placeholder="Start typing here..." autocomplete="off" spellcheck="false">
+            <input type="text" id="typingInput" placeholder="Start typing here..." autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off">
             <button class="restart-button" id="restartButton" type="button">Restart </button>
         </section>
 
@@ -56,6 +68,8 @@
     </audio>
     <script src="Free Style Function.js"></script>
     <script src="Typing Test Function.js"></script>
+    <script src="Player Function.js"></script>
+    <script src="PR Function.js"></script>
     <script src="Theme Function.js"></script>
 </body>
 </html>

@@ -1,0 +1,8 @@
+[build]
+  # The site is plain HTML in the project root; no build step is needed.
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  # @netlify/blobs 11 needs Node 22+; functions use the same version.
+  NODE_VERSION = "22"

@@ -12,16 +12,23 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2704039128240077" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="How Keyflow uses browser storage, Google Analytics and Google AdSense, and the choices you have.">
     <title>Privacy Policy | Keyflow</title>
+    <script>if (localStorage.getItem("keyflow-theme") === "light") document.documentElement.dataset.theme = "light";</script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="Typing Test Styling.css">
 </head>
 <body class="practice-page">
     <header class="site-header">
-        <a class="brand" href="index.html"><span class="brand-mark">K</span>Keyflow</a>
+        <a class="brand" href="index.html" aria-label="Keyflow home">
+            <span class="brand-mark">K</span>
+            <span>Keyflow</span>
+        </a>
         <nav aria-label="Main navigation">
-            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link home-link" href="index.html"><span class="home-icon" aria-hidden="true">&#8962;</span> Home</a>
             <a class="nav-link" href="Practice.html">Practice</a>
             <a class="nav-link" href="Learn While Typing.html">Learn</a>
+            <a class="nav-link" href="leaderboard.html">Leaderboard</a>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false">
                 <span aria-hidden="true">&#9790;</span>
             </button>
@@ -30,8 +37,29 @@
     <main class="info-page">
         <p class="eyebrow">Privacy Policy</p>
         <h1>Your practice stays yours.</h1>
-        <p>Keyflow stores your sidebar preference in your browser so the interface can remember whether it was expanded or collapsed.</p>
-        <p>Typing activity is used in the browser to calculate practice results. We do not sell personal information or require an account to use the site.</p>
+        <p>Last updated: 9 November 2026.</p>
+
+        <h2>What stays in your browser</h2>
+        <p>Your typing is processed only in your browser to calculate speed and accuracy. The text you type is never sent to us. Keyflow saves a few things in your browser's local storage: your light or dark theme, whether the practice sidebar is expanded or collapsed, and, if you create an IGN, your IGN, tag and secret key. You can clear these at any time in your browser settings.</p>
+
+        <h2>IGNs, scores and the leaderboard</h2>
+        <p>Saving a result is optional. If you choose an IGN (in-game name), we store your IGN and its #tag, your best result on each test, your last 20 results (test, speed, accuracy and date), and a scrambled (hashed) copy of your secret key. We don't store the key itself, and we don't ask for your name or email.</p>
+        <p>Your IGN, #tag and best Free Style result are shown publicly on the leaderboard. Please don't use your real name or other personal information as your IGN. To limit abuse, we briefly use a scrambled version of your IP address to count how many IGNs are created from one connection. This data is stored with our hosting provider, Netlify. To have an IGN and its scores removed, contact us and include its IGN and #tag.</p>
+
+        <h2>Analytics</h2>
+        <p>We use Google Analytics to understand how visitors use the site, for example which pages are visited and roughly where visitors are located. Google Analytics uses cookies and collects information such as your IP address, device and browser type. You can opt out with the <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener">Google Analytics opt-out browser add-on</a>.</p>
+
+        <h2>Advertising</h2>
+        <p>We use Google AdSense to show ads. Google and its partners use cookies to serve ads based on your previous visits to this and other websites. You can turn off personalised advertising in <a href="https://adssettings.google.com" rel="noopener">Google Ads Settings</a>, or opt out of third-party personalised ads at <a href="https://www.aboutads.info/choices" rel="noopener">aboutads.info</a>. Learn more in <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">how Google uses information from sites that use its services</a>.</p>
+
+        <h2>Your choices</h2>
+        <p>You can block or delete cookies in your browser settings; the typing tests will still work. Where required by law, we ask for your consent before using cookies for analytics or personalised ads.</p>
+
+        <h2>Accounts and personal information</h2>
+        <p>Keyflow does not require an account. An IGN is optional, and we do not sell personal information.</p>
+
+        <h2>Contact</h2>
+        <p>Questions about this policy can be sent through our <a href="Contact.html">contact page</a>.</p>
     </main>
     <footer class="site-footer">
         <p>&copy; 2026 Keyflow. All rights reserved.</p>

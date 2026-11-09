@@ -12,14 +12,17 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2704039128240077" crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Practise typing with a short History lesson about Evidence, and track your words per minute and accuracy.">
     <title>Evidence | Keyflow</title>
     <script>
       if (localStorage.getItem("keyflow-theme") === "light")
         document.documentElement.dataset.theme = "light";
     </script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="Typing Test Styling.css" />
   </head>
   <body
+    data-test-id="lesson-evidence"
     class="practice-page lesson-page"
     data-text="Historians study sources such as letters, tools, photographs, and buildings to learn about people who lived in the past. They compare different sources, ask who created them, and consider what evidence can reveal or leave uncertain."
   >
@@ -35,7 +38,7 @@
           ><span class="home-icon" aria-hidden="true">&#8962;</span> Home</a
         ><a class="nav-link" href="Practice.html">Practice</a
         ><a class="nav-link active" href="Learn While Typing.html">Learn</a
-        ><button
+        ><a class="nav-link" href="leaderboard.html">Leaderboard</a><button
           class="theme-toggle"
           id="themeToggle"
           type="button"
@@ -54,7 +57,7 @@
           <p id="textDisplay" aria-label="Text to type"></p>
           <input
             type="text"
-            id="typingInput"
+            id="typingInput" aria-label="Type the text shown above" spellcheck="false" autocapitalize="off" autocorrect="off"
             placeholder="Start typing here..."
             autocomplete="off"
           /><button class="restart-button" id="restartButton" type="button">
@@ -73,6 +76,8 @@
       <div class="footerbox"><p>&copy; 2026 Keyflow. All rights reserved.</p><nav aria-label="Footer navigation"><a href="About.html">About</a><a href="Contact.html">Contact</a><a href="Privacy Policy.html">Privacy Policy</a><a href="Terms of Use.html">Terms of Use</a></nav></div>
     </footer>
     <script src="Lesson Typing Function.js"></script>
+    <script src="Player Function.js"></script>
+    <script src="PR Function.js"></script>
     <script src="Theme Function.js"></script>
   </body>
 </html>

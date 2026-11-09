@@ -12,16 +12,23 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2704039128240077" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="About Keyflow, a free typing practice website for building accuracy, rhythm and confidence.">
     <title>About | Keyflow</title>
+    <script>if (localStorage.getItem("keyflow-theme") === "light") document.documentElement.dataset.theme = "light";</script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="Typing Test Styling.css">
 </head>
 <body class="practice-page">
     <header class="site-header">
-        <a class="brand" href="index.html"><span class="brand-mark">K</span>Keyflow</a>
+        <a class="brand" href="index.html" aria-label="Keyflow home">
+            <span class="brand-mark">K</span>
+            <span>Keyflow</span>
+        </a>
         <nav aria-label="Main navigation">
-            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link home-link" href="index.html"><span class="home-icon" aria-hidden="true">&#8962;</span> Home</a>
             <a class="nav-link" href="Practice.html">Practice</a>
             <a class="nav-link" href="Learn While Typing.html">Learn</a>
+            <a class="nav-link" href="leaderboard.html">Leaderboard</a>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false">
                 <span aria-hidden="true">&#9790;</span>
             </button>

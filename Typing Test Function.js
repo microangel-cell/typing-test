@@ -5,26 +5,41 @@ const timeDisplay = document.getElementById("time");
 const wpmDisplay = document.getElementById("wpm");
 const accuracyDisplay = document.getElementById("accuracy");
 const textDisplay = document.getElementById("textDisplay");
-const timerStatus = document.body.classList.contains("free-style-page")
+const isFreeStyle = document.body.classList.contains("free-style-page");
+const timerStatus = isFreeStyle
     ? timeDisplay.closest("p")
     : timeDisplay.parentElement;
 
 let textToType = document.body.dataset.text;
 const testDuration = Number(document.body.dataset.duration) || 60;
 
-let timeLeft = testDuration;
+// WPM is hidden for the first moments of a test so one fast keystroke
+// does not show an unrealistic spike.
+const MIN_SECONDS_FOR_WPM = 2;
+
 let timer = null;
 let isRunning = false;
 let startTime = null;
-let backspacePresses = 0;
+let previousValue = "";
+let typedKeystrokes = 0;
+let correctKeystrokes = 0;
+
 const timeoutBuzzer = document.getElementById("timeoutBuzzer")
     || new Audio("Wrong_Buzzer_-_Sound_Effect(360p).mp3");
 timeoutBuzzer.preload = "auto";
 
+// Screen-reader announcement for the final result.
+const resultAnnouncer = document.createElement("p");
+resultAnnouncer.className = "sr-only";
+resultAnnouncer.setAttribute("role", "status");
+resultAnnouncer.setAttribute("aria-live", "polite");
+document.body.appendChild(resultAnnouncer);
+
 function renderText() {
     textDisplay.replaceChildren();
+    typingInput.maxLength = textToType.length;
 
-    if (document.body.classList.contains("free-style-page")) {
+    if (isFreeStyle) {
         const words = textToType.split(" ");
         const promptStyle = window.getComputedStyle(textDisplay);
         const availableWidth = textDisplay.clientWidth
@@ -72,7 +87,7 @@ function renderText() {
             characterIndex += lineText.length;
         });
 
-        updateTextHighlight("");
+        updateTextHighlight(typingInput.value);
         return;
     }
 
@@ -82,7 +97,7 @@ function renderText() {
         textDisplay.appendChild(characterSpan);
     }
 
-    updateTextHighlight("");
+    updateTextHighlight(typingInput.value);
 }
 
 function updateTextHighlight(typedText) {
@@ -102,7 +117,7 @@ function updateTextHighlight(typedText) {
         }
     });
 
-    if (document.body.classList.contains("free-style-page")) {
+    if (isFreeStyle) {
         const lines = Array.from(textDisplay.querySelectorAll(".free-style-line"));
         const activeLineIndex = lines.findIndex((line) => {
             const lineStart = Number(line.dataset.start);
@@ -120,65 +135,84 @@ function updateTextHighlight(typedText) {
         });
     }
 
-    typingInput.classList.toggle(
-        "input-warning",
-        typedText.length > textToType.length
-    );
+    keepCurrentCharacterVisible();
 }
 
-renderText();
+function keepCurrentCharacterVisible() {
+    if (window.innerWidth > 700 || isFreeStyle) {
+        return;
+    }
 
-if (document.body.classList.contains("free-style-page")) {
-    window.addEventListener("resize", function () {
-        const typedText = typingInput.value;
-        renderText();
-        updateTextHighlight(typedText);
-    });
-}
+    const currentCharacter = textDisplay.querySelector(".current-character");
+    if (!currentCharacter) {
+        return;
+    }
 
-restartButton.addEventListener("click", restartTest);
+    const displayBounds = textDisplay.getBoundingClientRect();
+    const characterBounds = currentCharacter.getBoundingClientRect();
+    const visibleTop = displayBounds.top + textDisplay.clientTop;
+    const visibleCenter = visibleTop + textDisplay.clientHeight / 2;
+    const characterCenter = characterBounds.top + characterBounds.height / 2;
 
-
-/* =========================
-   START TEST
-========================= */
-
-function startTest() {
-
-    // Reset values
-    timeLeft = testDuration;
-    timeDisplay.textContent = timeLeft;
-    wpmDisplay.textContent = 0;
-    accuracyDisplay.textContent = 100;
-    backspacePresses = 0;
-    timerStatus.classList.remove("timer-expired");
-
-    // Start the test
-    isRunning = true;
-    startTime = Date.now();
-
-    typingInput.disabled = false;
-    typingInput.focus();
-
-    // Stop an existing timer
-    clearInterval(timer);
-
-    // Start timer
-    timer = setInterval(updateTimer, 1000);
+    textDisplay.scrollTop += characterCenter - visibleCenter;
 }
 
 
 /* =========================
-   TIMER
+   TIMING AND STATISTICS
 ========================= */
+
+function getElapsedSeconds() {
+    if (startTime === null) {
+        return 0;
+    }
+
+    return Math.min((Date.now() - startTime) / 1000, testDuration);
+}
+
+function countCorrectCharacters(typedText) {
+    let correctCharacters = 0;
+
+    for (let i = 0; i < typedText.length; i++) {
+        if (typedText[i] === textToType[i]) {
+            correctCharacters++;
+        }
+    }
+
+    return correctCharacters;
+}
+
+// Accuracy = correct keystrokes / all character keystrokes.
+// Mistakes stay counted even after they are fixed; backspace is not a mistake.
+function getAccuracy() {
+    return typedKeystrokes === 0
+        ? 100
+        : (correctKeystrokes / typedKeystrokes) * 100;
+}
+
+function getWPM(isFinal) {
+    const elapsedSeconds = getElapsedSeconds();
+
+    if (elapsedSeconds <= 0 || (!isFinal && elapsedSeconds < MIN_SECONDS_FOR_WPM)) {
+        return 0;
+    }
+
+    return (countCorrectCharacters(typingInput.value) / 5) / (elapsedSeconds / 60);
+}
+
+function updateStats(isFinal = false) {
+    accuracyDisplay.textContent = Math.round(getAccuracy());
+    wpmDisplay.textContent = Math.round(getWPM(isFinal));
+}
 
 function updateTimer() {
-
-    timeLeft--;
+    const elapsedSeconds = getElapsedSeconds();
+    const timeLeft = Math.max(0, Math.ceil(testDuration - elapsedSeconds));
 
     timeDisplay.textContent = timeLeft;
+    updateStats();
 
-    if (timeLeft <= 0) {
+    if (elapsedSeconds >= testDuration) {
         timerStatus.classList.add("timer-expired");
         timeoutBuzzer.currentTime = 0;
         timeoutBuzzer.play().catch(() => {});
@@ -188,120 +222,132 @@ function updateTimer() {
 
 
 /* =========================
+   START / FINISH / RESTART
+========================= */
+
+function startTest() {
+    isRunning = true;
+    startTime = Date.now();
+    timerStatus.classList.remove("timer-expired");
+    resultAnnouncer.textContent = "";
+
+    clearInterval(timer);
+    // Ticks often and reads the real clock, so the countdown never drifts.
+    timer = setInterval(updateTimer, 200);
+}
+
+function finishTest() {
+    isRunning = false;
+    clearInterval(timer);
+    updateStats(true);
+    typingInput.disabled = true;
+
+    resultAnnouncer.textContent = `Test complete. ${wpmDisplay.textContent} words per minute, `
+        + `${accuracyDisplay.textContent} percent accuracy.`;
+
+    // Lets the PR panel (PR Function.js) save the result.
+    document.dispatchEvent(new CustomEvent("keyflow:testcomplete", {
+        detail: {
+            correctChars: countCorrectCharacters(typingInput.value),
+            seconds: getElapsedSeconds(),
+            accuracy: getAccuracy(),
+            wpm: Number(wpmDisplay.textContent),
+        },
+    }));
+
+    if (isFreeStyle) {
+        const stats = document.querySelector(".free-style-stats");
+        stats?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+
+function restartTest() {
+    if (isFreeStyle && typeof window.generateFreeStyleText === "function") {
+        textToType = window.generateFreeStyleText();
+    }
+
+    clearInterval(timer);
+
+    isRunning = false;
+    startTime = null;
+    previousValue = "";
+    typedKeystrokes = 0;
+    correctKeystrokes = 0;
+
+    typingInput.value = "";
+    typingInput.disabled = false;
+    renderText();
+    timeDisplay.textContent = testDuration;
+    wpmDisplay.textContent = 0;
+    accuracyDisplay.textContent = 100;
+    resultAnnouncer.textContent = "";
+    timerStatus.classList.remove("timer-expired");
+    typingInput.focus();
+    document.dispatchEvent(new CustomEvent("keyflow:testreset"));
+}
+
+
+/* =========================
    TYPING
 ========================= */
 
-typingInput.addEventListener("input", checkTyping);
-
-typingInput.addEventListener("keydown", function (event) {
-    if (isRunning && event.key === "Backspace") {
-        backspacePresses++;
+function recordKeystrokes(newValue) {
+    // Count only newly added characters; deletions are not keystrokes.
+    if (newValue.length <= previousValue.length) {
+        return;
     }
-});
+
+    let firstChange = 0;
+    while (firstChange < previousValue.length && previousValue[firstChange] === newValue[firstChange]) {
+        firstChange++;
+    }
+
+    const addedCount = newValue.length - previousValue.length;
+
+    for (let i = firstChange; i < firstChange + addedCount; i++) {
+        typedKeystrokes++;
+
+        if (newValue[i] === textToType[i]) {
+            correctKeystrokes++;
+        }
+    }
+}
 
 function checkTyping() {
+    const typedText = typingInput.value;
 
     if (!isRunning) {
-        if (typingInput.value.length === 0) {
+        if (typedText.length === 0) {
             return;
         }
 
         startTest();
     }
 
-    const typedText = typingInput.value;
+    recordKeystrokes(typedText);
+    previousValue = typedText;
 
     updateTextHighlight(typedText);
-
-    let correctCharacters = 0;
-    let wrongCharacters = 0;
-
-    for (let i = 0; i < typedText.length; i++) {
-
-        if (typedText[i] === textToType[i]) {
-            correctCharacters++;
-        } else {
-            wrongCharacters++;
-        }
-    }
-
-    const wrongPresses = wrongCharacters + backspacePresses;
-    const accuracy = typedText.length === 0 && backspacePresses === 0
-        ? 100
-        : correctCharacters === 0
-        ? 0
-        : Math.max(
-            0,
-            ((correctCharacters - wrongPresses) / correctCharacters) * 100
-        );
-
-    accuracyDisplay.textContent = Math.round(accuracy);
-
-    calculateWPM(correctCharacters);
+    updateStats();
 
     if (typedText === textToType) {
         finishTest();
     }
 }
 
-
-/* =========================
-   WPM
-========================= */
-
-function calculateWPM(correctCharacters) {
-
-    const elapsedTime = (Date.now() - startTime) / 1000;
-
-    const elapsedMinutes = elapsedTime / 60;
-
-    if (elapsedMinutes <= 0) {
-        return;
-    }
-
-    const wpm = (correctCharacters / 5) / elapsedMinutes;
-
-    wpmDisplay.textContent = Math.round(wpm);
+function blockEvent(event) {
+    event.preventDefault();
 }
 
+typingInput.addEventListener("input", checkTyping);
+// Pasting or dropping text would skip the actual typing.
+typingInput.addEventListener("paste", blockEvent);
+typingInput.addEventListener("drop", blockEvent);
+restartButton.addEventListener("click", restartTest);
 
-/* =========================
-   FINISH TEST
-========================= */
+renderText();
+timeDisplay.textContent = testDuration;
 
-function finishTest() {
-
-    isRunning = false;
-
-    clearInterval(timer);
-
-    typingInput.disabled = true;
-
-    console.log("Test finished!");
-}
-
-function restartTest() {
-
-    if (
-        document.body.classList.contains("free-style-page")
-        && typeof window.generateFreeStyleText === "function"
-    ) {
-        textToType = window.generateFreeStyleText();
-    }
-
-    clearInterval(timer);
-
-    timeLeft = testDuration;
-    isRunning = false;
-    startTime = null;
-    backspacePresses = 0;
-
-    typingInput.value = "";
-    typingInput.disabled = false;
-    renderText();
-    timeDisplay.textContent = timeLeft;
-    wpmDisplay.textContent = 0;
-    accuracyDisplay.textContent = 100;
-    timerStatus.classList.remove("timer-expired");
-    typingInput.focus();
+if (isFreeStyle) {
+    window.addEventListener("resize", renderText);
 }
