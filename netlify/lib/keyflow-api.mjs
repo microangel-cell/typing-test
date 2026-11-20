@@ -1,10 +1,15 @@
-// Keyflow scores API: IGN registration, score saving, player stats and the leaderboard.
+// Keyflow scores API: IGN registration, score saving, player stats and leaderboards.
 // Storage is any object with the Netlify Blobs store methods used below
 // (get, getWithMetadata, setJSON), so the logic can be tested without Netlify.
+//
+// Leaderboards:
+//   free-style, practice-1..20, lesson-<slug>   one board per test (best WPM)
+//   overall-practice, overall-learn             average of a player's best WPM per
+//                                               paragraph/lesson, min. 5 completed
 import { createHash, randomBytes, randomInt } from "node:crypto";
 
-export const LEADERBOARD_TEST = "free-style";
 export const LEADERBOARD_MIN_ACCURACY = 85;
+export const OVERALL_MIN_COMPLETED = 5;
 const LEADERBOARD_STORED = 100;
 const LEADERBOARD_SHOWN = 50;
 const HISTORY_LENGTH = 20;
@@ -12,6 +17,7 @@ const MAX_WPM = 250;
 const MIN_SECONDS = 3;
 const MIN_SECONDS_BETWEEN_SCORES = 3;
 const REGISTRATIONS_PER_HOUR = 10;
+const PRACTICE_COUNT = 20;
 
 const LESSON_SLUGS = [
     "algorithms", "ancient-civilisations", "cause-and-effect", "character", "chronology",
@@ -20,6 +26,8 @@ const LESSON_SLUGS = [
     "plant-life", "poetry", "rhythm", "setting", "the-solar-system", "the-water-cycle",
     "theme", "vocabulary", "wellbeing",
 ];
+
+const CATEGORY_TOTALS = { practice: PRACTICE_COUNT, learn: LESSON_SLUGS.length };
 
 // Words blocked inside IGNs (checked after undoing common number swaps like 4 -> a).
 const BLOCKED_WORDS = [
@@ -40,6 +48,7 @@ class ApiError extends Error {
 /* ---------- helpers ---------- */
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function json(status, body) {
     return new Response(JSON.stringify(body), {
@@ -54,11 +63,21 @@ export function isValidTestId(testId) {
     const practice = /^practice-(\d{1,2})$/.exec(testId);
     if (practice) {
         const number = Number(practice[1]);
-        return number >= 1 && number <= 20;
+        return String(number) === practice[1] && number >= 1 && number <= PRACTICE_COUNT;
     }
 
     const lesson = /^lesson-([a-z-]+)$/.exec(testId);
     return Boolean(lesson && LESSON_SLUGS.includes(lesson[1]));
+}
+
+export function categoryOf(testId) {
+    if (testId.startsWith("practice-")) return "practice";
+    if (testId.startsWith("lesson-")) return "learn";
+    return null;
+}
+
+function isValidBoardId(boardId) {
+    return boardId === "overall-practice" || boardId === "overall-learn" || isValidTestId(boardId);
 }
 
 function isTimedTest(testId) {
@@ -107,14 +126,49 @@ function isBetterScore(candidate, current) {
     return candidate.accuracy > current.accuracy;
 }
 
-function sortLeaderboard(entries) {
+function sortTestBoard(entries) {
     return entries.sort((a, b) =>
         b.wpm - a.wpm
         || b.accuracy - a.accuracy
         || a.date.localeCompare(b.date));
 }
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function sortOverallBoard(entries) {
+    return entries.sort((a, b) =>
+        b.avgWpm - a.avgWpm
+        || b.avgAccuracy - a.avgAccuracy
+        || b.completed - a.completed
+        || a.date.localeCompare(b.date));
+}
+
+// A player's overall standing in "practice" or "learn", from their best
+// qualifying (85%+) result on each paragraph or lesson.
+export function computeOverall(boards, category) {
+    const results = Object.entries(boards)
+        .filter(([testId]) => categoryOf(testId) === category)
+        .map(([, score]) => score);
+
+    if (results.length === 0) {
+        return { completed: 0, total: CATEGORY_TOTALS[category], avgWpm: 0, avgAccuracy: 0 };
+    }
+
+    const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+    return {
+        completed: results.length,
+        total: CATEGORY_TOTALS[category],
+        avgWpm: Math.round(mean(results.map((score) => score.wpm)) * 10) / 10,
+        avgAccuracy: Math.round(mean(results.map((score) => score.accuracy))),
+    };
+}
+
+// Older records kept one Free Style best in `board`; now every test has one in `boards`.
+function withBoards(record) {
+    if (!record.boards) {
+        record.boards = record.board ? { "free-style": record.board } : {};
+    }
+    delete record.board;
+    return record;
+}
 
 // Read-modify-write with an ETag check, retried if someone else wrote first.
 async function updateJSON(store, key, update, fallback) {
@@ -170,7 +224,7 @@ async function findPlayerByKey(store, rawKey) {
         throw new ApiError(401, "No IGN matches that secret key.");
     }
 
-    return player;
+    return withBoards(player);
 }
 
 function publicPlayer(player) {
@@ -179,9 +233,65 @@ function publicPlayer(player) {
         tag: player.tag,
         createdAt: player.createdAt,
         prs: player.prs,
+        boards: player.boards,
         history: player.history,
-        board: player.board || null,
+        overall: {
+            practice: computeOverall(player.boards, "practice"),
+            learn: computeOverall(player.boards, "learn"),
+        },
     };
+}
+
+/* ---------- leaderboard writes ---------- */
+
+// Makes sure a test board holds the player's best qualifying score. Returns their rank.
+async function upsertTestBoard(store, testId, player, best) {
+    const board = await updateJSON(store, `leaderboard/${testId}`, (data) => {
+        const existing = data.entries.find((entry) => entry.playerId === player.id);
+        if (existing && !isBetterScore(best, existing)) {
+            return undefined; // Already up to date; no write needed.
+        }
+        const others = data.entries.filter((entry) => entry.playerId !== player.id);
+        others.push({ playerId: player.id, ign: player.ign, tag: player.tag, ...best });
+        data.entries = sortTestBoard(others).slice(0, LEADERBOARD_STORED);
+        return data;
+    }, { entries: [] });
+
+    const index = board.entries.findIndex((entry) => entry.playerId === player.id);
+    return index >= 0 ? index + 1 : null;
+}
+
+// Makes sure an overall board reflects the player's current standing. Returns their rank.
+async function upsertOverallBoard(store, category, player, overall, date) {
+    if (overall.completed < OVERALL_MIN_COMPLETED) {
+        return null;
+    }
+
+    const board = await updateJSON(store, `leaderboard/overall-${category}`, (data) => {
+        const existing = data.entries.find((entry) => entry.playerId === player.id);
+        if (existing
+            && existing.avgWpm === overall.avgWpm
+            && existing.avgAccuracy === overall.avgAccuracy
+            && existing.completed === overall.completed) {
+            return undefined; // Already up to date.
+        }
+        const others = data.entries.filter((entry) => entry.playerId !== player.id);
+        others.push({
+            playerId: player.id,
+            ign: player.ign,
+            tag: player.tag,
+            avgWpm: overall.avgWpm,
+            avgAccuracy: overall.avgAccuracy,
+            completed: overall.completed,
+            total: overall.total,
+            date: existing && existing.avgWpm === overall.avgWpm ? existing.date : date,
+        });
+        data.entries = sortOverallBoard(others).slice(0, LEADERBOARD_STORED);
+        return data;
+    }, { entries: [] });
+
+    const index = board.entries.findIndex((entry) => entry.playerId === player.id);
+    return index >= 0 ? index + 1 : null;
 }
 
 /* ---------- endpoints ---------- */
@@ -227,8 +337,8 @@ async function register(request, { store, ip, now }) {
         tag,
         createdAt,
         prs: {},
+        boards: {},
         history: [],
-        board: null,
         lastSubmitAt: 0,
     };
 
@@ -267,11 +377,14 @@ async function saveScore(request, { store, now }) {
 
     const date = new Date(now).toISOString();
     const score = { wpm, accuracy: Math.round(accuracy), date };
+    const qualified = score.accuracy >= LEADERBOARD_MIN_ACCURACY;
     let previousPR = null;
     let isNewPR = false;
     let improvedBoard = false;
 
     const updated = await updateJSON(store, `players/${player.id}`, (record) => {
+        withBoards(record);
+
         if (now - record.lastSubmitAt < MIN_SECONDS_BETWEEN_SCORES * 1000) {
             throw new ApiError(429, "Results are arriving too quickly. Please wait a moment.");
         }
@@ -280,9 +393,9 @@ async function saveScore(request, { store, now }) {
         isNewPR = isBetterScore(score, previousPR);
         if (isNewPR) record.prs[testId] = score;
 
-        if (testId === LEADERBOARD_TEST && score.accuracy >= LEADERBOARD_MIN_ACCURACY) {
-            improvedBoard = isBetterScore(score, record.board);
-            if (improvedBoard) record.board = score;
+        if (qualified) {
+            improvedBoard = isBetterScore(score, record.boards[testId]);
+            if (improvedBoard) record.boards[testId] = score;
         }
 
         record.history = [{ testId, ...score }, ...record.history].slice(0, HISTORY_LENGTH);
@@ -290,26 +403,27 @@ async function saveScore(request, { store, now }) {
         return record;
     });
 
-    const qualified = testId === LEADERBOARD_TEST && score.accuracy >= LEADERBOARD_MIN_ACCURACY;
     let rank = null;
+    let overall = null;
 
-    // On every qualifying result, make sure the board holds the player's best.
-    // This also repairs the board if an earlier write was lost.
-    if (qualified && updated.board) {
-        const best = updated.board;
-        const board = await updateJSON(store, `leaderboard/${LEADERBOARD_TEST}`, (data) => {
-            const existing = data.entries.find((entry) => entry.playerId === player.id);
-            if (existing && !isBetterScore(best, existing)) {
-                return undefined; // Already up to date; no write needed.
-            }
-            const others = data.entries.filter((entry) => entry.playerId !== player.id);
-            others.push({ playerId: player.id, ign: player.ign, tag: player.tag, ...best });
-            data.entries = sortLeaderboard(others).slice(0, LEADERBOARD_STORED);
-            return data;
-        }, { entries: [] });
+    // On every qualifying result, make sure the boards hold the player's best.
+    // This also repairs a board if an earlier write was lost.
+    if (qualified && updated.boards[testId]) {
+        rank = await upsertTestBoard(store, testId, player, updated.boards[testId]);
+    }
 
-        const index = board.entries.findIndex((entry) => entry.playerId === player.id);
-        rank = index >= 0 ? index + 1 : null;
+    const category = categoryOf(testId);
+    if (category) {
+        const standing = computeOverall(updated.boards, category);
+        const overallRank = qualified
+            ? await upsertOverallBoard(store, category, player, standing, date)
+            : null;
+        overall = {
+            category,
+            ...standing,
+            needed: Math.max(0, OVERALL_MIN_COMPLETED - standing.completed),
+            rank: overallRank,
+        };
     }
 
     return json(200, {
@@ -321,6 +435,7 @@ async function saveScore(request, { store, now }) {
             qualified,
             improved: improvedBoard,
             rank,
+            overall,
         },
         player: publicPlayer(updated),
     });
@@ -333,20 +448,34 @@ async function getMe(request, { store }) {
 }
 
 async function getLeaderboard(request, { store }) {
-    const test = new URL(request.url).searchParams.get("test") || LEADERBOARD_TEST;
+    const params = new URL(request.url).searchParams;
+    const boardId = params.get("board") || params.get("test") || "free-style";
 
-    if (test !== LEADERBOARD_TEST) {
-        throw new ApiError(400, "Only the Free Style leaderboard is available.");
+    if (!isValidBoardId(boardId)) {
+        throw new ApiError(400, "Unknown leaderboard.");
     }
 
-    const data = await store.get(`leaderboard/${test}`, { type: "json" });
+    const isOverall = boardId.startsWith("overall-");
+    const data = await store.get(`leaderboard/${boardId}`, { type: "json" });
     const entries = (data ? data.entries : [])
         .slice(0, LEADERBOARD_SHOWN)
-        .map(({ ign, tag, wpm, accuracy, date }) => ({ ign, tag, wpm, accuracy, date }));
+        .map((entry) => (isOverall
+            ? {
+                ign: entry.ign,
+                tag: entry.tag,
+                avgWpm: entry.avgWpm,
+                avgAccuracy: entry.avgAccuracy,
+                completed: entry.completed,
+                total: entry.total,
+                date: entry.date,
+            }
+            : { ign: entry.ign, tag: entry.tag, wpm: entry.wpm, accuracy: entry.accuracy, date: entry.date }));
 
     return json(200, {
-        test,
+        board: boardId,
+        kind: isOverall ? "overall" : "test",
         minAccuracy: LEADERBOARD_MIN_ACCURACY,
+        minCompleted: isOverall ? OVERALL_MIN_COMPLETED : null,
         entries,
     });
 }

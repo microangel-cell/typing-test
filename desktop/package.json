@@ -1,0 +1,53 @@
+{
+  "name": "keyflow-desktop",
+  "productName": "Keyflow",
+  "version": "1.0.0",
+  "description": "Keyflow typing practice for Windows",
+  "author": "Keyflow",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "node launch.js",
+    "icon": "node launch.js make-icon.js",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.keyflow.typing",
+    "productName": "Keyflow",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "config.js",
+      "build/icon.png"
+    ],
+    "extraResources": [
+      {
+        "from": "..",
+        "to": "site",
+        "filter": [
+          "*.html",
+          "*.js",
+          "*.css",
+          "*.svg",
+          "*.mp3"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Keyflow"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.3.0",
+    "electron-builder": "^26.18.0"
+  }
+}

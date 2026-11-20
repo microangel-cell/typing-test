@@ -1,9 +1,21 @@
-// Leaderboard page: top 50 Free Style table, the "My stats" card and IGN restore.
+// Leaderboard page: Free Style / Practice / Learn tabs, the "My stats" card and IGN restore.
 (function () {
     const Player = window.KeyflowPlayer;
     const rows = document.getElementById("leaderboardRows");
+    const head = document.getElementById("leaderboardHead");
+    const caption = document.getElementById("boardCaption");
+    const rules = document.getElementById("boardRules");
+    const panel = document.getElementById("boardPanel");
+    const picker = document.getElementById("boardPicker");
+    const select = document.getElementById("boardSelect");
+    const tabs = Array.from(document.querySelectorAll(".board-tabs [role=tab]"));
     const card = document.getElementById("my-stats");
+    const BOARD_STORAGE_KEY = "keyflow-leaderboard";
+
+    let currentBoard = "free-style";
     let leaderboardEntries = [];
+    let leaderboardKind = "test";
+    let requestNumber = 0;
 
     function el(tag, attributes = {}, ...children) {
         const element = document.createElement(tag);
@@ -24,44 +36,220 @@
         return element;
     }
 
+    /* ---------- which board is showing ---------- */
+
+    function categoryOfBoard(boardId) {
+        if (boardId === "overall-practice") return "practice";
+        if (boardId === "overall-learn") return "learn";
+        return Player.categoryOf(boardId);
+    }
+
+    function isKnownBoard(boardId) {
+        if (["free-style", "overall-practice", "overall-learn"].includes(boardId)) return true;
+        const category = Player.categoryOf(boardId);
+        return Boolean(category) && Player.testsInCategory(category).includes(boardId);
+    }
+
+    // "#practice" / "#learn" open that tab's Overall board; "#practice-7" opens one paragraph.
+    function boardFromHash() {
+        const hash = decodeURIComponent(window.location.hash.slice(1));
+        if (hash === "practice") return "overall-practice";
+        if (hash === "learn") return "overall-learn";
+        return isKnownBoard(hash) ? hash : null;
+    }
+
+    function rememberedBoard() {
+        try {
+            const saved = localStorage.getItem(BOARD_STORAGE_KEY);
+            return isKnownBoard(saved) ? saved : null;
+        } catch {
+            return null;
+        }
+    }
+
+    // Where a "go and type it" link should point for each board.
+    function pageForBoard(boardId) {
+        if (boardId === "free-style") return ["Free Style.html", "Take the Free Style test →"];
+        if (boardId === "overall-practice") return ["Practice.html", "Start practising →"];
+        if (boardId === "overall-learn") return ["Learn While Typing.html", "Start a lesson →"];
+        const practice = /^practice-(\d+)$/.exec(boardId);
+        if (practice) return [`Typing Test Practicepage${practice[1]}.html`, "Type this paragraph →"];
+        return [`${boardId}.html`, "Type this lesson →"];
+    }
+
+    function boardTitle(boardId) {
+        if (boardId === "overall-practice") return "Practice overall";
+        if (boardId === "overall-learn") return "Learn overall";
+        return Player.testLabel(boardId);
+    }
+
+    function renderRules(boardId) {
+        const [href, linkText] = pageForBoard(boardId);
+        let text;
+
+        if (boardId === "free-style") {
+            text = "Each player's best 60-second Free Style result.";
+        } else if (boardId.startsWith("overall-")) {
+            const isPractice = boardId === "overall-practice";
+            text = `The average of each player's best WPM across the ${isPractice ? "paragraphs" : "lessons"} they've completed `
+                + `with ${Player.MIN_ACCURACY}%+ accuracy. At least ${Player.OVERALL_MIN_COMPLETED} needed to appear.`;
+        } else {
+            text = `Each player's best result on ${boardTitle(boardId)}.`;
+        }
+
+        rules.replaceChildren(text, " ", el("a", { href }, linkText));
+        caption.textContent = `Top 50: ${boardTitle(boardId)}`;
+    }
+
+    function fillPicker(category) {
+        const overallId = `overall-${category}`;
+        const groupLabel = category === "practice" ? "Paragraphs" : "Lessons";
+        const group = el("optgroup", { label: groupLabel },
+            Player.testsInCategory(category).map((testId) => el("option", { value: testId }, Player.testLabel(testId))));
+
+        select.replaceChildren(
+            el("option", { value: overallId }, category === "practice" ? "Overall (all paragraphs)" : "Overall (all lessons)"),
+            group,
+        );
+    }
+
+    function showBoard(boardId, { focusTab = false } = {}) {
+        currentBoard = boardId;
+        const category = categoryOfBoard(boardId);
+
+        tabs.forEach((tab) => {
+            const selected = tab.dataset.category === category;
+            tab.setAttribute("aria-selected", String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+            if (selected) {
+                panel.setAttribute("aria-labelledby", tab.id);
+                if (focusTab) tab.focus();
+            }
+        });
+
+        if (category === "free-style") {
+            picker.hidden = true;
+        } else {
+            picker.hidden = false;
+            if (select.dataset.category !== category) {
+                fillPicker(category);
+                select.dataset.category = category;
+            }
+            select.value = boardId;
+        }
+
+        try {
+            localStorage.setItem(BOARD_STORAGE_KEY, boardId);
+        } catch {
+            // Not remembered; that's fine.
+        }
+
+        const hash = boardId === "overall-practice" ? "practice" : boardId === "overall-learn" ? "learn" : boardId;
+        history.replaceState(null, "", `#${hash}`);
+
+        renderRules(boardId);
+        loadLeaderboard();
+    }
+
+    tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+            const category = tab.dataset.category;
+            showBoard(category === "free-style" ? "free-style" : `overall-${category}`);
+        });
+
+        // Arrow keys move between tabs (standard tab-list keyboard pattern).
+        tab.addEventListener("keydown", (event) => {
+            const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+            if (!step) return;
+            event.preventDefault();
+            const next = tabs[(index + step + tabs.length) % tabs.length];
+            const category = next.dataset.category;
+            showBoard(category === "free-style" ? "free-style" : `overall-${category}`, { focusTab: true });
+        });
+    });
+
+    select.addEventListener("change", () => showBoard(select.value));
+
+    window.addEventListener("hashchange", () => {
+        const fromHash = boardFromHash();
+        if (fromHash && fromHash !== currentBoard) showBoard(fromHash);
+    });
+
     /* ---------- leaderboard table ---------- */
 
-    function statusRow(message) {
-        rows.replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "leaderboard-status" }, message)));
+    function renderHead() {
+        const columns = leaderboardKind === "overall"
+            ? ["#", "Player", "Avg WPM", "Accuracy", "Completed"]
+            : ["#", "Player", "WPM", "Accuracy", "Date"];
+        head.replaceChildren(el("tr", {}, columns.map((column) => el("th", { scope: "col" }, column))));
+    }
+
+    function statusRow(...message) {
+        rows.replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "leaderboard-status" }, ...message)));
+    }
+
+    function emptyMessage() {
+        if (currentBoard === "free-style") {
+            return `No scores yet. Be the first! Finish a Free Style test with ${Player.MIN_ACCURACY}% accuracy or more.`;
+        }
+        if (currentBoard.startsWith("overall-")) {
+            const unit = currentBoard === "overall-practice" ? "paragraphs" : "lessons";
+            return `No one is on this board yet. Complete ${Player.OVERALL_MIN_COMPLETED} ${unit} with ${Player.MIN_ACCURACY}%+ accuracy to be first.`;
+        }
+        return `No scores on ${boardTitle(currentBoard)} yet. Be the first!`;
     }
 
     function renderTable() {
         const me = Player.getPlayer();
+        renderHead();
 
         if (leaderboardEntries.length === 0) {
-            statusRow("No scores yet. Be the first! Finish a Free Style test with 85% accuracy or more.");
+            statusRow(emptyMessage());
             return;
         }
 
         rows.replaceChildren(...leaderboardEntries.map((entry, index) => {
             const isMe = me && me.ign === entry.ign && me.tag === entry.tag;
-            return el("tr", { class: isMe ? "is-me" : null },
-                el("td", {}, index + 1),
-                el("td", {},
-                    el("span", { class: "lb-ign" }, entry.ign),
-                    el("span", { class: "lb-tag" }, `#${entry.tag}`),
-                    isMe ? el("span", { class: "lb-you" }, "you") : null),
-                el("td", { class: "lb-wpm" }, entry.wpm),
-                el("td", {}, `${entry.accuracy}%`),
-                el("td", {}, Player.formatDate(entry.date)),
-            );
+            const player = el("td", {},
+                el("span", { class: "lb-ign" }, entry.ign),
+                el("span", { class: "lb-tag" }, `#${entry.tag}`),
+                isMe ? el("span", { class: "lb-you" }, "you") : null);
+
+            const cells = leaderboardKind === "overall"
+                ? [
+                    el("td", { class: "lb-wpm" }, Math.round(entry.avgWpm)),
+                    el("td", {}, `${entry.avgAccuracy}%`),
+                    el("td", {}, el("span", { class: "lb-completed" }, `${entry.completed}/${entry.total}`)),
+                ]
+                : [
+                    el("td", { class: "lb-wpm" }, entry.wpm),
+                    el("td", {}, `${entry.accuracy}%`),
+                    el("td", {}, Player.formatDate(entry.date)),
+                ];
+
+            return el("tr", { class: isMe ? "is-me" : null }, el("td", {}, index + 1), player, cells);
         }));
     }
 
     async function loadLeaderboard() {
+        const thisRequest = ++requestNumber;
+        const boardId = currentBoard;
+        leaderboardKind = boardId.startsWith("overall-") ? "overall" : "test";
+        renderHead();
+        statusRow("Loading the leaderboard…");
+
         try {
-            const data = await Player.fetchLeaderboard();
+            const data = await Player.fetchLeaderboard(boardId);
+            if (thisRequest !== requestNumber) return; // A newer board was picked meanwhile.
             leaderboardEntries = data.entries;
+            leaderboardKind = data.kind;
             renderTable();
         } catch (error) {
-            rows.replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "leaderboard-status" },
+            if (thisRequest !== requestNumber) return;
+            statusRow(
                 `Couldn't load the leaderboard. ${error.message} `,
-                el("button", { type: "button", class: "kf-button secondary", onclick: loadLeaderboard }, "Try again"))));
+                el("button", { type: "button", class: "kf-button secondary", onclick: loadLeaderboard }, "Try again"),
+            );
         }
     }
 
@@ -114,8 +302,21 @@
         return svg;
     }
 
-    function stat(label, value) {
-        return el("div", { class: "my-stat" }, el("span", { class: "my-stat-label" }, label), el("strong", {}, value));
+    function stat(label, value, note) {
+        return el("div", { class: "my-stat" },
+            el("span", { class: "my-stat-label" }, label),
+            el("strong", {}, value),
+            note ? el("span", { class: "my-stat-note" }, note) : null);
+    }
+
+    function overallStat(label, overall) {
+        if (!overall || overall.completed === 0) {
+            return stat(label, "—", "none completed yet");
+        }
+        const note = overall.completed < Player.OVERALL_MIN_COMPLETED
+            ? `${overall.completed}/${overall.total} · ${Player.OVERALL_MIN_COMPLETED - overall.completed} more to rank`
+            : `${overall.completed}/${overall.total} completed`;
+        return stat(label, `${Math.round(overall.avgWpm)} WPM`, note);
     }
 
     function renderStats(saved, player) {
@@ -157,14 +358,18 @@
         setCard(
             el("div", { class: "my-stats-head" },
                 el("h2", {}, el("span", { class: "lb-ign" }, player.ign), el("span", { class: "lb-tag" }, `#${player.tag}`)),
-                el("span", { class: "kf-help" }, summary ? `Last ${summary.count} tests` : "No tests yet"),
+                el("span", { class: "kf-help" }, summary ? `${summary.count} recent tests` : "No tests yet"),
             ),
             el("div", { class: "my-stats-grid" },
-                stat("Free Style PR", freeStylePR ? `${freeStylePR.wpm} WPM` : "—"),
-                stat("Average WPM", summary ? summary.averageWpm : "—"),
-                stat("Average accuracy", summary ? `${summary.averageAccuracy}%` : "—"),
-                stat("Trend", trendText),
+                stat("Free Style PR", freeStylePR ? `${freeStylePR.wpm} WPM` : "—", freeStylePR ? `${freeStylePR.accuracy}% accuracy` : "no result yet"),
+                overallStat("Practice avg", player.overall && player.overall.practice),
+                overallStat("Learn avg", player.overall && player.overall.learn),
+                stat("Trend", trendText, summary && summary.trend !== null ? "newer vs older half" : "needs 4+ tests"),
             ),
+            summary && summary.count >= 2
+                ? el("p", { class: "sparkline-caption" },
+                    `Last ${summary.count} tests · avg ${summary.averageWpm} WPM · ${summary.averageAccuracy}% accuracy`)
+                : null,
             summary && summary.count >= 2 ? sparkline(player.history) : null,
             !saved.keySaved
                 ? el("p", { class: "kf-error" }, "You haven't confirmed saving your key yet. Download it now so you don't lose this IGN.")
@@ -276,10 +481,13 @@
         }
     }
 
+    // "#restore" and "#my-stats" scroll to the card; any other hash may name a board.
+    const scrollToCard = ["#restore", "#my-stats"].includes(window.location.hash);
+
     loadStats().then(() => {
-        if (window.location.hash === "#restore" || window.location.hash === "#my-stats") {
+        if (scrollToCard) {
             card.scrollIntoView({ block: "start" });
         }
     });
-    loadLeaderboard();
+    showBoard(boardFromHash() || rememberedBoard() || "free-style");
 })();

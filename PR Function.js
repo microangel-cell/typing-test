@@ -63,7 +63,7 @@
 
     function show(...children) {
         // Skip empty values; replaceChildren would print them as "null"/"false".
-        body.replaceChildren(...children.filter((child) => child != null && child !== false));
+        body.replaceChildren(...children.flat().filter((child) => child != null && child !== false));
         body.hidden = false;
     }
 
@@ -236,23 +236,38 @@
                 `This run: ${score.wpm} WPM · ${score.accuracy}%. Your PR is still `,
                 el("strong", {}, `${pr.wpm} WPM`), ". Keep going!");
 
-        let boardLine = null;
-        if (testId === "free-style") {
-            if (!leaderboard.qualified) {
-                boardLine = "Reach 85% accuracy to appear on the leaderboard.";
-            } else if (leaderboard.rank) {
-                boardLine = `Your leaderboard rank: #${leaderboard.rank}`;
+        const boardLines = [];
+        const shortName = testId === "free-style" ? "Free Style" : testId.startsWith("practice-") ? "Paragraph" : "Lesson";
+
+        if (!leaderboard.qualified) {
+            boardLines.push(`Reach ${Player.MIN_ACCURACY}% accuracy to appear on the leaderboard.`);
+        } else if (leaderboard.rank) {
+            boardLines.push(`${shortName} rank: #${leaderboard.rank}`);
+        } else {
+            boardLines.push(`Not in the ${shortName} top 100 yet. Keep practising!`);
+        }
+
+        const overall = leaderboard.overall;
+        if (overall) {
+            const categoryName = overall.category === "practice" ? "Practice" : "Learn";
+            const unit = overall.category === "practice" ? "paragraph" : "lesson";
+
+            if (overall.needed > 0) {
+                boardLines.push(`${categoryName} overall: complete ${overall.needed} more ${unit}${overall.needed === 1 ? "" : "s"} `
+                    + `with ${Player.MIN_ACCURACY}%+ accuracy to join (${overall.completed}/${Player.OVERALL_MIN_COMPLETED}).`);
+            } else if (overall.rank) {
+                boardLines.push(`${categoryName} overall: #${overall.rank} · avg ${Math.round(overall.avgWpm)} WPM · ${overall.completed}/${overall.total} done`);
             } else {
-                boardLine = "Not in the top 100 yet. Keep practising!";
+                boardLines.push(`${categoryName} overall: avg ${Math.round(overall.avgWpm)} WPM · ${overall.completed}/${overall.total} done`);
             }
         }
 
         show(
             headline,
-            boardLine && el("p", { class: "pr-summary" }, boardLine),
+            boardLines.map((line) => el("p", { class: "pr-summary" }, line)),
             el("p", { class: "pr-links" },
                 el("span", {}, "Saved as ", el("strong", {}, Player.displayName(player))),
-                el("a", { href: "leaderboard.html" }, "View leaderboard →"),
+                el("a", { href: `leaderboard.html#${testId}` }, "View leaderboard →"),
                 el("a", { href: "leaderboard.html#my-stats" }, "My stats →"),
             ),
         );

@@ -11,6 +11,15 @@ window.KeyflowPlayer = (function () {
         "Focused Energy", "Measured Rhythm", "Bright Ideas", "Strong Foundations", "Complete the Set",
     ];
     const SMALL_WORDS = ["and", "the", "of"];
+    const LESSON_SLUGS = [
+        "algorithms", "ancient-civilisations", "cause-and-effect", "character", "chronology",
+        "colour", "communication", "digital-citizenship", "evidence", "forces", "fractions",
+        "geometry", "healthy-habits", "landforms", "maps", "patterns", "percentages",
+        "plant-life", "poetry", "rhythm", "setting", "the-solar-system", "the-water-cycle",
+        "theme", "vocabulary", "wellbeing",
+    ];
+    const OVERALL_MIN_COMPLETED = 5;
+    const MIN_ACCURACY = 85;
 
     /* ---------- saved player (this browser only) ---------- */
 
@@ -124,8 +133,27 @@ window.KeyflowPlayer = (function () {
         return player;
     }
 
-    function fetchLeaderboard() {
-        return request("GET", "/api/leaderboard?test=free-style");
+    function fetchLeaderboard(boardId = "free-style") {
+        return request("GET", `/api/leaderboard?board=${encodeURIComponent(boardId)}`);
+    }
+
+    // Test ids for the Practice or Learn menu, in display order.
+    function testsInCategory(category) {
+        if (category === "practice") {
+            return PARAGRAPH_NAMES.map((name, index) => `practice-${index + 1}`);
+        }
+        if (category === "learn") {
+            return LESSON_SLUGS.map((slug) => `lesson-${slug}`)
+                .sort((a, b) => testLabel(a).localeCompare(testLabel(b)));
+        }
+        return [];
+    }
+
+    function categoryOf(testId) {
+        if (/^practice-\d+$/.test(testId)) return "practice";
+        if (/^lesson-/.test(testId)) return "learn";
+        if (testId === "free-style") return "free-style";
+        return null;
     }
 
     function extractKey(text) {
@@ -257,6 +285,14 @@ window.KeyflowPlayer = (function () {
             lines.push(`  ${pad(testLabel(testId), 38)}${pad(`${pr.wpm} WPM`, 9)}${pad(`${pr.accuracy}%`, 6)}${formatDate(pr.date)}`);
         });
 
+        if (player.overall) {
+            lines.push("", `OVERALL (best result per test, ${MIN_ACCURACY}%+ accuracy)`);
+            [["Practice", player.overall.practice], ["Learn", player.overall.learn]].forEach(([name, overall]) => {
+                const average = overall.completed ? `avg ${Math.round(overall.avgWpm)} WPM` : "no results yet";
+                lines.push(`  ${pad(name, 22)}${pad(average, 16)}${overall.completed}/${overall.total} completed`);
+            });
+        }
+
         const summary = summarise(player.history);
         lines.push("", `SUMMARY (last ${summary ? summary.count : 0} tests)`);
 
@@ -291,6 +327,10 @@ window.KeyflowPlayer = (function () {
         fetchMe,
         restore,
         fetchLeaderboard,
+        testsInCategory,
+        categoryOf,
+        OVERALL_MIN_COMPLETED,
+        MIN_ACCURACY,
         extractKey,
         testLabel,
         formatDate,

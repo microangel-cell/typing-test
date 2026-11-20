@@ -33,7 +33,12 @@ Players can save results without an account:
 1. After a test, the **Save your PR** panel (`PR Function.js`) asks for an IGN (3–16 letters, numbers or `_`).
 2. The server gives back a public `#tag` (so names can repeat, e.g. `Micro_Angel#4821`) and a secret key (`KF-XXXX-XXXX-XXXX-XXXX-XXXX`).
 3. The player downloads the key as a `.txt` file. The browser also remembers it, so later results save automatically.
-4. `leaderboard.html` shows the top 50 Free Style results (minimum 85% accuracy). It also has the **My stats** card (download stats or the key) and **Restore my IGN** (paste the key or upload the key file).
+4. `leaderboard.html` has three tabs, all requiring at least 85% accuracy:
+   - **Free Style**: best 60-second result.
+   - **Practice**: **Overall** (average of a player's best WPM across the paragraphs they've completed, minimum 5) or any single paragraph from the menu.
+   - **Learn**: the same, for lessons.
+
+   Links can open a board directly: `leaderboard.html#practice`, `#learn`, `#practice-7`, `#lesson-maps`. The page also has the **My stats** card (download stats or the key) and **Restore my IGN** (paste the key or upload the key file).
 
 | File | Role |
 | --- | --- |
@@ -57,3 +62,22 @@ npx netlify-cli dev
 ## Deploying
 
 Deploy from Git (or with `netlify deploy`), not by drag-and-drop, so Netlify builds the function. `netlify.toml` sets Node 22, which `@netlify/blobs` requires.
+
+## Desktop app (Windows)
+
+The `desktop/` folder wraps the site in an Electron app. It loads the same HTML/CSS/JS files from the project root, so changes to the website are included the next time you build. It has its own `package.json`, so it doesn't affect the Netlify build.
+
+1. Set `API_BASE` in `desktop/config.js` to your live Netlify address. The app forwards every `/api/...` request there, so Save-your-PR, the leaderboard and Restore my IGN work. If it's empty, the tests still work but saving is turned off.
+2. Install and run:
+
+   ```
+   cd desktop
+   npm install
+   node node_modules/electron/install.js   # only if npm skipped Electron's download
+   npm start                               # run the app
+   npm run dist                            # build desktop/dist/Keyflow Setup <version>.exe
+   ```
+
+- `npm run icon` remakes `desktop/build/icon.png` from `favicon.svg`.
+- AdSense scripts are blocked in the app, because AdSense doesn't allow ads inside desktop apps.
+- The installer isn't code-signed, so Windows SmartScreen shows a warning the first time it runs ("More info" → "Run anyway").

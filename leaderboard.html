@@ -12,7 +12,7 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2704039128240077" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="The Keyflow Free Style leaderboard: the fastest 60-second typing results with at least 85% accuracy.">
+    <meta name="description" content="Keyflow leaderboards for Free Style, Practice and Learn: the fastest typing results with at least 85% accuracy.">
     <title>Leaderboard | Keyflow</title>
     <script>if (localStorage.getItem("keyflow-theme") === "light") document.documentElement.dataset.theme = "light";</script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -36,30 +36,37 @@
     </header>
 
     <main class="leaderboard-main">
-        <p class="eyebrow">Free Style · 60 seconds</p>
+        <p class="eyebrow">Free Style · Practice · Learn</p>
         <h1>Leaderboard</h1>
-        <p class="leaderboard-intro">Each player's best Free Style result. Only results with at least 85% accuracy count. <a href="Free Style.html">Take the test →</a></p>
+        <p class="leaderboard-intro">Each player's best results. Only results with at least 85% accuracy count.</p>
 
         <div class="my-stats" id="my-stats" aria-live="polite">
             <p class="kf-help">Loading your stats…</p>
         </div>
 
-        <div class="leaderboard-table-wrap">
-            <table class="leaderboard-table">
-                <caption class="sr-only">Top 50 Free Style results</caption>
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Player</th>
-                        <th scope="col">WPM</th>
-                        <th scope="col">Accuracy</th>
-                        <th scope="col">Date</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardRows">
-                    <tr><td colspan="5" class="leaderboard-status">Loading the leaderboard…</td></tr>
-                </tbody>
-            </table>
+        <div class="board-controls">
+            <div class="board-tabs" role="tablist" aria-label="Leaderboard">
+                <button type="button" role="tab" id="tab-free-style" data-category="free-style" aria-controls="boardPanel" aria-selected="true">Free Style</button>
+                <button type="button" role="tab" id="tab-practice" data-category="practice" aria-controls="boardPanel" aria-selected="false" tabindex="-1">Practice</button>
+                <button type="button" role="tab" id="tab-learn" data-category="learn" aria-controls="boardPanel" aria-selected="false" tabindex="-1">Learn</button>
+            </div>
+            <div class="board-picker" id="boardPicker" hidden>
+                <label class="kf-label" for="boardSelect">Show</label>
+                <select id="boardSelect" class="kf-input"></select>
+            </div>
+        </div>
+
+        <div id="boardPanel" role="tabpanel" aria-labelledby="tab-free-style">
+            <p class="board-rules" id="boardRules"></p>
+            <div class="leaderboard-table-wrap">
+                <table class="leaderboard-table">
+                    <caption class="sr-only" id="boardCaption">Top 50 Free Style results</caption>
+                    <thead id="leaderboardHead"></thead>
+                    <tbody id="leaderboardRows">
+                        <tr><td colspan="5" class="leaderboard-status">Loading the leaderboard…</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
